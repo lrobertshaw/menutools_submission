@@ -43,7 +43,7 @@ def splitFiles(files, splitting_mode, splitting_granularity):
 
 def getJobParams(mode, task_conf):
     params = {}
-    if mode == 'NTP':
+    if mode == 'NTP' or  mode == 'L1IN':
         input_files = ['root://eoscms.cern.ch/'+os.path.join(task_conf.input_directory, file_name) for file_name in os.listdir(task_conf.input_directory) if file_name.endswith('.root')]
         # print input_files
         print '# of files: {}'.format(len(input_files))
@@ -57,6 +57,8 @@ def getJobParams(mode, task_conf):
         params['TEMPL_TASKCONFDIR'] = '{}/conf'.format(task_conf.task_dir)
         params['TEMPL_ABSTASKCONFDIR'] = os.path.join(os.environ["PWD"], params['TEMPL_TASKCONFDIR'])
         params['TEMPL_OUTFILE'] = 'ntuple.root'
+        if  mode == 'L1IN':
+            params['TEMPL_OUTFILE'] = 'l1inputs.root'
         params['TEMPL_OUTDIR'] = task_conf.output_dir
         params['TEMPL_JOBFLAVOR'] = task_conf.job_flavor
     else:
@@ -101,6 +103,8 @@ def createCondorConfig(mode, params):
 
 def createJobExecutable(mode, params):
     shutil.copy('templates/run_{}.sh'.format(mode), '{}/run.sh'.format(params['TEMPL_TASKCONFDIR']))
+    shutil.copy('templates/copy_files.sh', '{}/copy_files.sh'.format(params['TEMPL_TASKDIR']))
+    os.chmod(os.path.join(params['TEMPL_TASKDIR'], 'copy_files.sh'),  0754)
     params_file = open(os.path.join(params['TEMPL_TASKCONFDIR'], 'params.sh'), 'w')
     templs_keys = [key for key in params.keys() if 'TEMPL_' in key]
     for key in templs_keys:
@@ -157,7 +161,7 @@ def printStatus(clusterId):
         print e.output
 
 def printWait(task_conf, clusterId):
-    condor_cmd = 'condor_wait -wait 1 -status {}/logs/condor.{}.log'.format(task_conf.task_dir, clusterId)
+    condor_cmd = 'condor_wait -wait 30 -status {}/logs/condor.{}.log'.format(task_conf.task_dir, clusterId)
     try:
         print subprocess.check_output(condor_cmd, shell=True)
     except subprocess.CalledProcessError as e:
