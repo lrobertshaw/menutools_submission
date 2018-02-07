@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CLUSTERID=$1
-PROCID=$2
+source job_info.sh
+
 source params.sh
 
 echo "CLUSTER:" ${CLUSTERID}
@@ -16,5 +16,5 @@ echo "Current dir: ${BATCH_DIR}"
 ls -l
 extension="${OUTFILE##*.}"
 filename="${OUTFILE%.*}"
-OUTTARGET="${OUTDIR}/${filename}_${PROCID}.${extension}"
+OUTTARGET="${OUTDIR}/${filename}_${CLUSTERID}_${PROCID}.${extension}"
 cp ${OUTFILE} ${OUTTARGET}
