@@ -10,13 +10,15 @@ import subprocess
 
 class TaskConfig:
     def __init__(self, taskName, cfgfile):
-        print 'TN: {}'+taskName
+        print 'TN: {}'.format(taskName)
         self.task_name = taskName
+
         self.version = cfgfile.get('Common', 'version')
         self.cmssw_config = cfgfile.get('Common', 'cmssw_config')
-        self.input_directory = cfgfile.get(taskName, 'input_directory')
-        self.splitting_mode = cfgfile.get(taskName, 'splitting_mode')
-        self.splitting_granularity = cfgfile.get(taskName, 'splitting_granularity')
+
+        for task_opt in cfgfile.options(self.task_name):
+            setattr(self, task_opt, cfgfile.get(taskName, task_opt))
+
         self.task_dir = '{}/{}/{}'.format(cfgfile.get('Common', 'name'),
                                           cfgfile.get('Common', 'version'),
                                           taskName)
@@ -24,7 +26,8 @@ class TaskConfig:
                                                self.task_name,
                                                cfgfile.get('Common', 'mode'),
                                                self.version)
-        self.job_flavor = cfgfile.get(taskName, 'job_flavor')
+        self.ncpu = cfgfile.get('Common', 'ncpu')
+        self.output_file_name = cfgfile.get('Common', 'output_file_name')
 
     def __str__(self):
         return 'task-name {}: version {}'.format(self.task_name, self.version)
@@ -41,45 +44,108 @@ def splitFiles(files, splitting_mode, splitting_granularity):
     return split_files
 
 
+def getFilesForDataset(dataset, site=None):
+    import time
+    from subprocess import Popen, PIPE
+    options = ''
+    eC = 5
+    count = 0
+    while (eC != 0 and count < 3):
+        if count != 0:
+            print 'Sleeping, then retrying DAS'
+            time.sleep(100)
+        p = Popen('dasgoclient {} --query "file dataset={}"'.format(options, dataset),
+                  stdout=PIPE,
+                  shell=True)
+        pipe = p.stdout.read()
+        tupleP = os.waitpid(p.pid, 0)
+        eC = tupleP[1]
+        count = count+1
+        if eC == 0:
+            print "DAS succeeded after", count, "attempts", eC
+            return [filename for filename in pipe.split('\n') if '.root' in filename]
+        else:
+            print "DAS failed 3 times- I give up"
+            return []
+
+
 def getJobParams(mode, task_conf):
     params = {}
-    if mode == 'NTP' or  mode == 'L1IN':
+    if mode == 'NTP' or mode == 'L1IN' or mode == 'SIMDIGI':
         input_files = ['root://eoscms.cern.ch/'+os.path.join(task_conf.input_directory, file_name) for file_name in os.listdir(task_conf.input_directory) if file_name.endswith('.root')]
         # print input_files
         print '# of files: {}'.format(len(input_files))
         split_files = splitFiles(input_files, task_conf.splitting_mode, task_conf.splitting_granularity)
-        n_jobs = len(split_files)
+        n_jobs_max = len(split_files)
+        n_jobs = n_jobs_max
+        if(hasattr(task_conf, 'max_njobs')):
+            n_jobs = min(n_jobs_max, task_conf.max_njobs)
+        max_events = -1
+        if(hasattr(task_conf, 'max_events_perjob')):
+            max_events = task_conf.max_events_perjob
+        split_pu_files = []
+        if(hasattr(task_conf, 'pu_dataset')):
+            pu_files = getFilesForDataset(dataset=task_conf.pu_dataset, site=None)
+            pu_splitting_granularity = min(100,  int(len(pu_files)/n_jobs))
+            print "# of PU files: {}".format(len(pu_files))
+            print "# PU file per job: {}".format(pu_splitting_granularity)
+            split_pu_files = splitFiles(files=pu_files,
+                                        splitting_mode='file_based',
+                                        splitting_granularity=pu_splitting_granularity)
+            print len(split_pu_files)
         # the first 2 are compulsory for all modes
         params['NJOBS'] = n_jobs
         params['INFILES'] = split_files
-        params['TEMPL_NEVENTS'] = -1
+        params['PUFILES'] = split_pu_files
+        params['SEEDS'] = range(0, n_jobs)
+        params['TEMPL_NEVENTS'] = max_events
         params['TEMPL_TASKDIR'] = task_conf.task_dir
         params['TEMPL_TASKCONFDIR'] = '{}/conf'.format(task_conf.task_dir)
         params['TEMPL_ABSTASKCONFDIR'] = os.path.join(os.environ["PWD"], params['TEMPL_TASKCONFDIR'])
-        params['TEMPL_OUTFILE'] = 'ntuple.root'
-        if  mode == 'L1IN':
-            params['TEMPL_OUTFILE'] = 'l1inputs.root'
+        params['TEMPL_OUTFILE'] = task_conf.output_file_name
         params['TEMPL_OUTDIR'] = task_conf.output_dir
         params['TEMPL_JOBFLAVOR'] = task_conf.job_flavor
+        params['TEMPL_NCPU'] = task_conf.ncpu
     else:
         print 'Mode: {} is not implemented! Exiting...'.format(mode)
         sys.exit(4)
     return params
 
 
+def formatFileList(input_files):
+    input_file_names = ['\'{}\''.format(file_name) for file_name in input_files]
+    return ',\n'.join(input_file_names)
+
+
 def createJobConfig(mode, params):
     custom_template_filename = 'templates/jobCustomization_{}_cfg.py'.format(mode)
+    default_template_filename = 'templates/jobCustomization_{}_cfg.py'.format('DEFAULT')
+    if not os.path.isfile(custom_template_filename):
+        custom_template_filename = default_template_filename
     for job_idx in range(0, params['NJOBS']):
-        input_files = params['INFILES'][job_idx]
-        input_file_names = ['\'{}\''.format(file_name) for file_name in input_files]
-        file_list = ',\n'.join(input_file_names)
         custom_template_file = open(custom_template_filename)
         custom_template = custom_template_file.read()
         custom_template_file.close()
+        # input files
+        file_list = formatFileList(params['INFILES'][job_idx])
         custom_template = custom_template.replace('TEMPL_INFILES', file_list)
+        # pu files
+        pu_file_list = formatFileList(params['PUFILES'][job_idx])
+        custom_template = custom_template.replace('TEMPL_PUFILELIST', pu_file_list)
+
+        custom_template = custom_template.replace('TEMPL_SEED', str(params['SEEDS'][job_idx]))
+
         templs_keys = [key for key in params.keys() if 'TEMPL_' in key]
         for key in templs_keys:
             custom_template = custom_template.replace(key, str(params[key]))
+
+        # we now check that all templated arguments have been addressed
+        if('TEMPL_') in custom_template:
+            print "*** ERROR: not all the templated arguments of file {} have been addressed!".format(custom_template_filename)
+            for line in custom_template.split('\n'):
+                if 'TEMPL_' in line:
+                    print line
+            sys.exit(20)
 
         job_config_file = open(os.path.join(params['TEMPL_TASKCONFDIR'], 'job_config_{}.py'.format(job_idx)), 'w')
         job_config_file.write(custom_template)
@@ -88,6 +154,9 @@ def createJobConfig(mode, params):
 
 def createCondorConfig(mode, params):
     condor_template_name = 'templates/condorSubmit_{}.sub'.format(mode)
+    default_template_name = 'templates/condorSubmit_{}.sub'.format('DEFAULT')
+    if not os.path.isfile(condor_template_name):
+        condor_template_name = default_template_name
     condor_template_file = open(condor_template_name)
     condor_template = condor_template_file.read()
     condor_template_file.close()
@@ -102,7 +171,11 @@ def createCondorConfig(mode, params):
 
 
 def createJobExecutable(mode, params):
-    shutil.copy('templates/run_{}.sh'.format(mode), '{}/run.sh'.format(params['TEMPL_TASKCONFDIR']))
+    run_template_name = 'templates/run_{}.sh'.format(mode)
+    default_template_name = 'templates/run_{}.sh'.format('DEFAULT')
+    if not os.path.isfile(run_template_name):
+        run_template_name = default_template_name
+    shutil.copy(run_template_name, '{}/run.sh'.format(params['TEMPL_TASKCONFDIR']))
     shutil.copy('templates/copy_files.sh', '{}/copy_files.sh'.format(params['TEMPL_TASKDIR']))
     os.chmod(os.path.join(params['TEMPL_TASKDIR'], 'copy_files.sh'),  0754)
     params_file = open(os.path.join(params['TEMPL_TASKCONFDIR'], 'params.sh'), 'w')
@@ -134,8 +207,8 @@ def createTaskSetup(task_config, config_file):
     return
 
 
-def submitTask(task_config):
-    condor_cmd = 'condor_submit {}/conf/condorSubmit.sub'.format(task_config.task_dir)
+def submitTask(sub_name, task_config):
+    condor_cmd = 'condor_submit {}/conf/condorSubmit.sub -batch-name {}_{}'.format(task_config.task_dir, sub_name, task_config.task_name)
     try:
         print subprocess.check_output(condor_cmd, shell=True)
     except subprocess.CalledProcessError as e:
@@ -185,7 +258,7 @@ def main():
     cfgfile.optionxform = str
 
     cfgfile.read(opt.CONFIGFILE)
-
+    sub_name = cfgfile.get('Common', 'name')
     tasks = cfgfile.get('Common', 'tasks').split(',')
     task_configs = []
     for task in tasks:
@@ -203,7 +276,7 @@ def main():
         for task_conf in task_configs:
             print '-- Submitting task {}'.format(task_conf.task_name)
             # 1 create local dir
-            submitTask(task_conf)
+            submitTask(sub_name, task_conf)
     elif opt.STATUS:
         for task_conf in task_configs:
             print '-- Status of task {}'.format(task_conf.task_name)
