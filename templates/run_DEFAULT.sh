@@ -15,6 +15,10 @@ echo 'TASKCONFDIR' ${ABSTASKCONFDIR}
 echo 'OUT-DIR' ${OUTDIR}
 echo 'OUTPUT-FILE' ${OUTFILE}
 
+#dump job info
+echo 'PROCID='${PROCID} >> job_info.sh
+echo 'CLUSTERID='${CLUSTERID} >> job_info.sh
+
 cd ${ABSTASKCONFDIR}
 eval `scram runtime -sh`
 edmConfigDump job_config_${PROCID}.py > ${BATCH_DIR}/job_config.py

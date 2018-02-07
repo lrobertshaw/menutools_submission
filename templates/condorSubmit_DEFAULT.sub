@@ -6,10 +6,11 @@ error                 = TEMPL_TASKDIR/logs/job.$(ClusterId).$(ProcId).err
 log                   = TEMPL_TASKDIR/logs/condor.$(ClusterId).log
 +JobFlavour           = "TEMPL_JOBFLAVOR"
 
-RequestCpus = 1
+RequestCpus = TEMPL_NCPU
 
 transfer_input_files  = TEMPL_TASKDIR/copy_files.sh
 +PostCmd              = "copy_files.sh"
+
 transfer_output_files   = ""
 
 queue TEMPL_NJOBS
