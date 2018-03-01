@@ -33,15 +33,37 @@ class TaskConfig:
         return 'task-name {}: version {}'.format(self.task_name, self.version)
 
 
+def getLSs(file_name):
+    from subprocess import Popen, PIPE
+    lumis = []
+    p = Popen('edmFileUtil --eventsInLumis {}'.format(file_name),
+              stdout=PIPE,
+              shell=True)
+    pipe = p.stdout.read()
+    lines = pipe.split('\n')
+    for line in lines[4:-2]:
+        lumis.append(line.split()[1])
+    return lumis
+
+
 def splitFiles(files, splitting_mode, splitting_granularity):
     split_files = []
+    split_logic = []
     if splitting_mode == 'file_based':
         size = int(splitting_granularity)
         split_files = [files[i:i+size] for i in range(0, len(files), size)]
+    elif splitting_mode == 'lumi_based':
+        for file_name in files:
+            # print file_name
+            file_lss = getLSs(file_name)
+            for ls in file_lss:
+                split_files.append([file_name])
+                logic = '1:{}-1:{}'.format(ls, ls)
+                split_logic.append(logic)
     else:
         print 'Splitting-Mode: {} is not implemented! Exiting...'.format(splitting_mode)
         sys.exit(6)
-    return split_files
+    return split_files, split_logic
 
 
 def getFilesForDataset(dataset, site=None):
@@ -50,11 +72,17 @@ def getFilesForDataset(dataset, site=None):
     options = ''
     eC = 5
     count = 0
+    site_query = ''
+    if site is not None:
+        site_query = ' and site={}'.format(site)
+    query = 'dasgoclient {} --query "file dataset={} {}"'.format(options, dataset, site_query)
+
+    # print query
     while (eC != 0 and count < 3):
         if count != 0:
             print 'Sleeping, then retrying DAS'
             time.sleep(100)
-        p = Popen('dasgoclient {} --query "file dataset={}"'.format(options, dataset),
+        p = Popen(query,
                   stdout=PIPE,
                   shell=True)
         pipe = p.stdout.read()
@@ -69,17 +97,27 @@ def getFilesForDataset(dataset, site=None):
             return []
 
 
+
 def getJobParams(mode, task_conf):
     params = {}
     if mode == 'NTP' or mode == 'L1IN' or mode == 'SIMDIGI':
-        input_files = ['root://eoscms.cern.ch/'+os.path.join(task_conf.input_directory, file_name) for file_name in os.listdir(task_conf.input_directory) if file_name.endswith('.root')]
+        input_files = []
+        if task_conf.input_directory != '' and task_conf.input_directory != 'None':
+            print 'Reading inpout files from directory: {}'.format(task_conf.input_directory)
+            input_files = ['root://eoscms.cern.ch/'+os.path.join(task_conf.input_directory, file_name) for file_name in os.listdir(task_conf.input_directory) if file_name.endswith('.root')]
+
+        if task_conf.input_dataset != '' and task_conf.input_dataset != 'None':
+            print 'Reading inpout files from dataset: {}'.format(task_conf.input_dataset)
+            input_files = getFilesForDataset(task_conf.input_dataset, site='T2_CH_CERN')
         # print input_files
         print '# of files: {}'.format(len(input_files))
-        split_files = splitFiles(input_files, task_conf.splitting_mode, task_conf.splitting_granularity)
+        split_files, split_logic = splitFiles(input_files, task_conf.splitting_mode, task_conf.splitting_granularity)
         n_jobs_max = len(split_files)
         n_jobs = n_jobs_max
         if(hasattr(task_conf, 'max_njobs')):
             n_jobs = min(n_jobs_max, task_conf.max_njobs)
+        print '# of jobs: {}'.format(n_jobs)
+
         max_events = -1
         if(hasattr(task_conf, 'max_events_perjob')):
             max_events = task_conf.max_events_perjob
@@ -89,15 +127,16 @@ def getJobParams(mode, task_conf):
             pu_splitting_granularity = min(100,  int(len(pu_files)/n_jobs))
             print "# of PU files: {}".format(len(pu_files))
             print "# PU file per job: {}".format(pu_splitting_granularity)
-            split_pu_files = splitFiles(files=pu_files,
-                                        splitting_mode='file_based',
-                                        splitting_granularity=pu_splitting_granularity)
+            split_pu_files, split_pu_logic = splitFiles(files=pu_files,
+                                                        splitting_mode='file_based',
+                                                        splitting_granularity=pu_splitting_granularity)
             print len(split_pu_files)
         # the first 2 are compulsory for all modes
         params['NJOBS'] = n_jobs
         params['INFILES'] = split_files
         params['PUFILES'] = split_pu_files
         params['SEEDS'] = range(0, n_jobs)
+        params['SPLIT'] = split_logic
         params['TEMPL_NEVENTS'] = max_events
         params['TEMPL_TASKDIR'] = task_conf.task_dir
         params['TEMPL_TASKCONFDIR'] = '{}/conf'.format(task_conf.task_dir)
@@ -130,8 +169,14 @@ def createJobConfig(mode, params):
         file_list = formatFileList(params['INFILES'][job_idx])
         custom_template = custom_template.replace('TEMPL_INFILES', file_list)
         # pu files
-        pu_file_list = formatFileList(params['PUFILES'][job_idx])
-        custom_template = custom_template.replace('TEMPL_PUFILELIST', pu_file_list)
+
+        if len(params['PUFILES']) != 0:
+            pu_file_list = formatFileList(params['PUFILES'][job_idx])
+            custom_template = custom_template.replace('TEMPL_PUFILELIST', pu_file_list)
+
+        if len(params['SPLIT']) != 0:
+            job_logic = params['SPLIT'][job_idx]
+            custom_template += 'process.source.lumisToProcess = cms.untracked.VLuminosityBlockRange("{}")\n'.format(job_logic)
 
         custom_template = custom_template.replace('TEMPL_SEED', str(params['SEEDS'][job_idx]))
 
