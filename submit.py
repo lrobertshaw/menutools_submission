@@ -240,8 +240,12 @@ def createTaskSetup(task_config, config_file):
         os.mkdir(task_config.task_dir+'/logs/')
 
     if not os.path.exists(task_config.output_dir):
-        print '   ERROR: output dir {} doesn\'t exist: please create it first!'.format(task_config.output_dir)
-        print sys.exit(2)
+        try:
+            os.makedirs(task_config.output_dir)
+        except:
+            print '   ERROR: output dir {} doesn\'t exist: please create it first!'.format(task_config.output_dir)
+            print "Unexpected error:", sys.exc_info()[0]
+            print sys.exit(2)
 
     shutil.copy(task_config.cmssw_config, '{}/conf/input_cfg.py'.format(task_config.task_dir))
 
@@ -306,6 +310,7 @@ def main():
     sub_name = cfgfile.get('Common', 'name')
     tasks = cfgfile.get('Common', 'tasks').split(',')
     task_configs = []
+    print tasks
     for task in tasks:
         task_configs.append(TaskConfig(task, cfgfile))
 
