@@ -248,6 +248,7 @@ def createTaskSetup(task_config, config_file):
             print sys.exit(2)
 
     shutil.copy(task_config.cmssw_config, '{}/conf/input_cfg.py'.format(task_config.task_dir))
+    shutil.copy("process_pickler.py", '{}/conf/process_pickler.py'.format(task_config.task_dir))
 
     params = getJobParams(mode, task_config)
     createJobConfig(mode, params)
