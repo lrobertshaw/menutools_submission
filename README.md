@@ -35,3 +35,4 @@ And create the corresponding template files in the directory
 You need 1 or 2 templated files:
 1. `condorSubmit_MODE.sub`: this defines the structure of the Condor submission file. If you don't need to modify it you can use the `condorSubmit_DEFAULT.sub` one (see [CERN Condor documentation](http://batchdocs.web.cern.ch/batchdocs/local/index.html));
 2. `jobCustomization_MODE_cfg.py.` which defines what needs to be changed for each job of the cluster.
+3. `run_MODE.sh`: this is the script which actually gets executed on the node, setups the config and calls cmsRun. Again a `run_DEFAULT.sh` exists and should work for most cases.
