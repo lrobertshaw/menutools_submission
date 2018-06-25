@@ -31,7 +31,14 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-       fileNames = cms.untracked.vstring('root://eoscms.cern.ch//eos/cms/store/cmst3/user/gpetrucc/l1phase2/93X/HadronGun/GEN-SIM-DIGI-RAW/HadronGun_job7_sub31.GEN-SIM-DIGI-RAW.root') )
+       fileNames = cms.untracked.vstring('file:/data/cerminar/HadronGun_job7_sub31.GEN-SIM-DIGI-RAW.root'),
+       inputCommands = cms.untracked.vstring("keep *",
+           "drop l1tHGCalTowerMapBXVector_hgcalTriggerPrimitiveDigiProducer_towerMap_HLT",
+           "drop l1tEMTFHit2016Extras_simEmtfDigis_CSC_HLT",
+           "drop l1tEMTFHit2016Extras_simEmtfDigis_RPC_HLT",
+           "drop l1tEMTFHit2016s_simEmtfDigis__HLT",
+           "drop l1tEMTFTrack2016Extras_simEmtfDigis__HLT",
+           "drop l1tEMTFTrack2016s_simEmtfDigis__HLT"))
 
 process.options = cms.untracked.PSet(
 
