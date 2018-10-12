@@ -15,9 +15,13 @@ class TaskConfig:
 
         self.version = cfgfile.get('Common', 'version')
         self.cmssw_config = cfgfile.get('Common', 'cmssw_config')
+        self.crab = False
 
         for task_opt in cfgfile.options(self.task_name):
-            setattr(self, task_opt, cfgfile.get(taskName, task_opt))
+            if task_opt == 'crab':
+                self.crab = cfgfile.getboolean(taskName, task_opt)
+            else:
+                setattr(self, task_opt, cfgfile.get(taskName, task_opt))
 
         self.task_dir = '{}/{}/{}'.format(cfgfile.get('Common', 'name'),
                                           cfgfile.get('Common', 'version'),
@@ -60,6 +64,8 @@ def splitFiles(files, splitting_mode, splitting_granularity):
                 split_files.append([file_name])
                 logic = '1:{}-1:{}'.format(ls, ls)
                 split_logic.append(logic)
+    elif splitting_mode == 'EventAwareLumiBased':
+        pass
     else:
         print 'Splitting-Mode: {} is not implemented! Exiting...'.format(splitting_mode)
         sys.exit(6)
@@ -102,25 +108,31 @@ def getJobParams(mode, task_conf):
     params = {}
     if mode == 'NTP' or mode == 'L1IN' or mode == 'SIMDIGI':
         input_files = []
-        if task_conf.input_directory != '' and task_conf.input_directory != 'None':
+        if task_conf.input_directory != '' and task_conf.input_directory != 'None' and not task_conf.crab:
             print 'Reading inpout files from directory: {}'.format(task_conf.input_directory)
             input_files = ['root://eoscms.cern.ch/'+os.path.join(task_conf.input_directory, file_name) for file_name in os.listdir(task_conf.input_directory) if file_name.endswith('.root')]
 
-        if task_conf.input_dataset != '' and task_conf.input_dataset != 'None':
+        if task_conf.input_dataset != '' and task_conf.input_dataset != 'None' and not task_conf.crab:
             print 'Reading inpout files from dataset: {}'.format(task_conf.input_dataset)
             input_files = getFilesForDataset(task_conf.input_dataset, site='T2_CH_CERN')
         # print input_files
-        print '# of files: {}'.format(len(input_files))
+
         split_files, split_logic = splitFiles(input_files, task_conf.splitting_mode, task_conf.splitting_granularity)
         n_jobs_max = len(split_files)
         n_jobs = n_jobs_max
         if(hasattr(task_conf, 'max_njobs')):
             n_jobs = min(n_jobs_max, task_conf.max_njobs)
-        print '# of jobs: {}'.format(n_jobs)
+
+        if not task_conf.crab:
+            print 'preparing batch submission:'
+            print '  # of files: {}'.format(len(input_files))
+            print '  # of jobs: {}'.format(n_jobs)
+        else:
+            print 'preparing crab submission'
 
         max_events = -1
-        if(hasattr(task_conf, 'max_events_perjob')):
-            max_events = task_conf.max_events_perjob
+        if(hasattr(task_conf, 'max_events')):
+            max_events = task_conf.max_events
         split_pu_files = []
         if(hasattr(task_conf, 'pu_dataset')):
             pu_files = getFilesForDataset(dataset=task_conf.pu_dataset, site=None)
@@ -145,6 +157,12 @@ def getJobParams(mode, task_conf):
         params['TEMPL_OUTDIR'] = task_conf.output_dir
         params['TEMPL_JOBFLAVOR'] = task_conf.job_flavor
         params['TEMPL_NCPU'] = task_conf.ncpu
+        params['TEMPL_SPLITGRANULARITY'] = task_conf.splitting_granularity
+        params['TEMPL_SPLITTINGMODE'] = task_conf.splitting_mode
+        params['TEMPL_REQUESTNAME'] = task_conf.task_name
+        params['TEMPL_INPUTDATASET'] = task_conf.input_dataset
+        params['TEMPL_DATASETTAG'] = '{}_{}'.format(task_conf.task_name, task_conf.version)
+
     else:
         print 'Mode: {} is not implemented! Exiting...'.format(mode)
         sys.exit(4)
@@ -230,6 +248,23 @@ def createJobExecutable(mode, params):
     params_file.close()
 
 
+def createCrabConfig(mode, params):
+    crab_template_name = 'templates/crab_{}.py'.format(mode)
+    default_template_name = 'templates/crab_{}.py'.format('DEFAULT')
+    if not os.path.isfile(crab_template_name):
+        crab_template_name = default_template_name
+    crab_template_file = open(crab_template_name)
+    crab_template = crab_template_file.read()
+    crab_template_file.close()
+    templs_keys = [key for key in params.keys() if 'TEMPL_' in key]
+    for key in templs_keys:
+        crab_template = crab_template.replace(key, str(params[key]))
+
+    crab_file = open(os.path.join(params['TEMPL_TASKCONFDIR'], 'crab.py'), 'w')
+    crab_file.write(crab_template)
+    crab_file.close()
+
+
 def createTaskSetup(task_config, config_file):
     mode = config_file.get('Common', 'mode')
     pwd = os.environ["PWD"]
@@ -251,18 +286,23 @@ def createTaskSetup(task_config, config_file):
     shutil.copy("process_pickler.py", '{}/conf/process_pickler.py'.format(task_config.task_dir))
 
     params = getJobParams(mode, task_config)
-    createJobConfig(mode, params)
-    createCondorConfig(mode, params)
-    createJobExecutable(mode, params)
+    if not task_config.crab:
+        createJobConfig(mode, params)
+        createCondorConfig(mode, params)
+        createJobExecutable(mode, params)
+    else:
+        createCrabConfig(mode, params)
     return
 
 
 def submitTask(sub_name, task_config):
-    condor_cmd = 'condor_submit {}/conf/condorSubmit.sub -batch-name {}_{}'.format(task_config.task_dir, sub_name, task_config.task_name)
+    submit_cmd = 'condor_submit {}/conf/condorSubmit.sub -batch-name {}_{}'.format(task_config.task_dir, sub_name, task_config.task_name)
+    if task_config.crab:
+        submit_cmd = 'crab submit {}/conf/crab.py'.format(task_config.task_dir)
     try:
-        print subprocess.check_output(condor_cmd, shell=True)
+        print subprocess.check_output(submit_cmd, shell=True)
     except subprocess.CalledProcessError as e:
-        print 'Command: {} FAILED!'.format(condor_cmd)
+        print 'Command: {} FAILED!'.format(submit_cmd)
         print e.output
 
 
@@ -309,7 +349,7 @@ def main():
 
     cfgfile.read(opt.CONFIGFILE)
     sub_name = cfgfile.get('Common', 'name')
-    tasks = cfgfile.get('Common', 'tasks').split(',')
+    tasks = [task.strip() for task in cfgfile.get('Common', 'tasks').split(',') if task != '']
     task_configs = []
     print tasks
     for task in tasks:
