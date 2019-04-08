@@ -26,6 +26,7 @@ class TaskConfig:
         self.task_dir = '{}/{}/{}'.format(cfgfile.get('Common', 'name'),
                                           cfgfile.get('Common', 'version'),
                                           taskName)
+        self.output_dir_base = cfgfile.get('Common', 'output_dir_base')
         self.output_dir = '{}/{}/{}/{}'.format(cfgfile.get('Common', 'output_dir_base'),
                                                self.task_name,
                                                cfgfile.get('Common', 'mode'),
@@ -162,6 +163,7 @@ def getJobParams(mode, task_conf):
         params['TEMPL_REQUESTNAME'] = task_conf.task_name
         params['TEMPL_INPUTDATASET'] = task_conf.input_dataset
         params['TEMPL_DATASETTAG'] = '{}_{}'.format(task_conf.task_name, task_conf.version)
+        params['TEMPL_CRABOUTDIR'] = task_conf.output_dir_base.split('/eos/cms')
 
     else:
         print 'Mode: {} is not implemented! Exiting...'.format(mode)

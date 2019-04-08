@@ -18,9 +18,10 @@ config.Data.inputDBS = 'global'
 config.Data.splitting = 'TEMPL_SPLITTINGMODE'
 config.Data.unitsPerJob = TEMPL_SPLITGRANULARITY
 config.Data.totalUnits = TEMPL_NEVENTS
-config.Data.outLFNDirBase = '/store/group/cmst3/group/l1tr/cerminar/hgcal/CMSSW1015/'
+config.Data.outLFNDirBase = 'TEMPL_CRABOUTDIR'
 config.Data.publication = False
 config.Data.ignoreLocality = False
 config.Data.outputDatasetTag = 'TEMPL_DATASETTAG'
 
 config.Site.storageSite = 'T2_CH_CERN'
+config.JobType.allowUndistributedCMSSW = True
