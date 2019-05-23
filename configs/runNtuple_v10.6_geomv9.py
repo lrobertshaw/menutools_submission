@@ -177,17 +177,17 @@ from L1Trigger.L1THGCalUtilities.hgcalTriggerNtuples_cfi import ntuple_multiclus
 
 cl3d_ntp2 = ntuple_multiclusters.clone()
 cl3d_ntp2.Multiclusters = cms.InputTag('VFEfp7tcThdummyC2dhistoMaxC3dVR:HGCalBackendLayer2Processor3DClustering')
-cl3d_ntp2.BranchNamePrefix = cms.untracked.string('hmVRcl3d')
+cl3d_ntp2.Prefix = cms.untracked.string('hmVRcl3d')
 process.hgcalTriggerNtuplizer.Ntuples.append(cl3d_ntp2)
 
 cl3d_ntp3 = ntuple_multiclusters.clone()
 cl3d_ntp3.Multiclusters = cms.InputTag('VFEfp7tcThdummyC2dhistoMaxC3dVRPhiBins:HGCalBackendLayer2Processor3DClustering')
-cl3d_ntp3.BranchNamePrefix = cms.untracked.string('hmVRcl3dRebin')
+cl3d_ntp3.Prefix = cms.untracked.string('hmVRcl3dRebin')
 process.hgcalTriggerNtuplizer.Ntuples.append(cl3d_ntp3)
 
 cl3d_ntp4 = ntuple_multiclusters.clone()
 cl3d_ntp4.Multiclusters = cms.InputTag('VFEfp7sTCdummyC2dhistoMaxC3dVR:HGCalBackendLayer2Processor3DClustering')
-cl3d_ntp4.BranchNamePrefix = cms.untracked.string('hmVRcl3dSTC')
+cl3d_ntp4.Prefix = cms.untracked.string('hmVRcl3dSTC')
 process.hgcalTriggerNtuplizer.Ntuples.append(cl3d_ntp4)
 
 # cl3d_ntp5 = ntuple_multiclusters.clone()
