@@ -24,12 +24,14 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(20)
+    input = cms.untracked.int32(100)
 )
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/PhaseIIMTDTDRAutumn18DR/DYToLL_M-50_14TeV_pythia8/FEVT/PU200_pilot_103X_upgrade2023_realistic_v2_ext4-v1/280000/FF5C31D5-D96E-5E48-B97F-61A0E00DF5C4.root'),
+    # fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/PhaseIIMTDTDRAutumn18DR/DYToLL_M-50_14TeV_pythia8/FEVT/PU200_pilot_103X_upgrade2023_realistic_v2_ext4-v1/280000/FF5C31D5-D96E-5E48-B97F-61A0E00DF5C4.root'),
+    # fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/PhaseIIMTDTDRAutumn18DR/SingleE_FlatPt-2to100/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/70000/F9B9F776-3DB1-5040-B16D-9B55CCCD3F82.root'),
+    fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/PhaseIIMTDTDRAutumn18DR/SinglePhoton_FlatPt-8to150/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/70000/04262EA7-7D5E-D349-B2E3-9823D4A1F762.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -51,7 +53,7 @@ process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
         dataTier = cms.untracked.string('GEN-SIM-DIGI-RAW'),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('file:step2_2ev_reprocess_slim.root'),
+    fileName = cms.untracked.string('f  ile:step2_2ev_reprocess_slim.root'),
     outputCommands = process.FEVTDEBUGHLTEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
@@ -77,7 +79,12 @@ process.load('CalibCalorimetry.CaloTPG.CaloTPGTranscoder_cfi')
 # Path and EndPath definitions
 process.L1simulation_step = cms.Path(process.SimL1Emulator)
 process.endjob_step = cms.EndPath(process.endOfProcess)
-# process.FEVTDEBUGHLToutput_step = cms.EndPath(process.FEVTDEBUGHLToutput)
+process.FEVTDEBUGHLToutput_step = cms.EndPath(process.FEVTDEBUGHLToutput)
+
+
+# FIXME: new emulated tracks
+process.load("L1Trigger.TrackFindingTracklet.L1TrackletEmulationTracks_cff")
+process.TTTracksEmulation = cms.Path(process.L1TrackletEmulationTracks)
 
 
 from L1Trigger.L1THGCalUtilities.hgcalTriggerChains import HGCalTriggerChains
@@ -90,7 +97,7 @@ import L1Trigger.L1THGCalUtilities.clustering3d as clustering3d
 chain = HGCalTriggerChains()
 chain.register_vfe("VFEfp7", vfe.create_compression)
 chain.register_concentrator("tcTh", concentrator.create_threshold)
-chain.register_concentrator("sTC", concentrator.create_supertriggercell)
+# chain.register_concentrator("sTC", concentrator.create_supertriggercell)
 
 chain.register_backend1("dRNNC2d", clustering2d.create_constrainedtopological)
 chain.register_backend1("dummyC2d", clustering2d.create_dummy)
@@ -98,13 +105,13 @@ chain.register_backend1("dummyC2d", clustering2d.create_dummy)
 chain.register_backend2("histoMaxC3dVR", clustering3d.create_histoMax_variableDr)
 chain.register_backend2("histoMaxC3dVRPhiBins", lambda p, i: clustering3d.create_histoMax_variableDr(p, i, nBins_Phi=108))
 
-chain.register_backend2("dRC3d", clustering3d.create_distance)
+# chain.register_backend2("dRC3d", clustering3d.create_distance)
 
 
 # chain.register_chain('VFEfp7', 'tcTh', 'dummyC2d', 'histoMaxC3d')
 chain.register_chain('VFEfp7', 'tcTh', 'dummyC2d', 'histoMaxC3dVR')
 chain.register_chain('VFEfp7', 'tcTh', 'dummyC2d', 'histoMaxC3dVRPhiBins')
-chain.register_chain('VFEfp7', 'sTC', 'dummyC2d', 'histoMaxC3dVR')
+# chain.register_chain('VFEfp7', 'sTC', 'dummyC2d', 'histoMaxC3dVR')
 # chain.register_chain('VFEfp7', 'tcTh', 'dRNNC2d', 'dRC3d')
 
 
@@ -115,6 +122,7 @@ process = chain.create_sequences(process)
 
 process.load("L1Trigger.L1THGCalUtilities.caloTruthCells_cff")
 process.caloTruthCellsProducer.triggerCells = cms.InputTag('VFEfp7:HGCalVFEProcessorSums')
+process.caloTruthCellsProducer.makeCellsCollection = True
 process.caloTruth_step = cms.Path(process.caloTruthCells)
 
 process.hgcalTowerMapProducer.InputTriggerCells = cms.InputTag('VFEfp7:HGCalVFEProcessorSums')
@@ -185,10 +193,10 @@ cl3d_ntp3.Multiclusters = cms.InputTag('VFEfp7tcThdummyC2dhistoMaxC3dVRPhiBins:H
 cl3d_ntp3.Prefix = cms.untracked.string('hmVRcl3dRebin')
 process.hgcalTriggerNtuplizer.Ntuples.append(cl3d_ntp3)
 
-cl3d_ntp4 = ntuple_multiclusters.clone()
-cl3d_ntp4.Multiclusters = cms.InputTag('VFEfp7sTCdummyC2dhistoMaxC3dVR:HGCalBackendLayer2Processor3DClustering')
-cl3d_ntp4.Prefix = cms.untracked.string('hmVRcl3dSTC')
-process.hgcalTriggerNtuplizer.Ntuples.append(cl3d_ntp4)
+# cl3d_ntp4 = ntuple_multiclusters.clone()
+# cl3d_ntp4.Multiclusters = cms.InputTag('VFEfp7sTCdummyC2dhistoMaxC3dVR:HGCalBackendLayer2Processor3DClustering')
+# cl3d_ntp4.Prefix = cms.untracked.string('hmVRcl3dSTC')
+# process.hgcalTriggerNtuplizer.Ntuples.append(cl3d_ntp4)
 
 # cl3d_ntp5 = ntuple_multiclusters.clone()
 # cl3d_ntp5.Multiclusters = cms.InputTag('VFEfp7tcThNCdummyC2dhistoMaxC3dVRNC:HGCalBackendLayer2Processor3DClustering')
@@ -206,17 +214,52 @@ ntuple_tkIsoEleHGC = ntuple_tkEle.clone()
 ntuple_tkIsoEleHGC.TkElectrons = cms.InputTag("L1TkIsoElectronsHGC","EG")
 ntuple_tkIsoEleHGC.BranchNamePrefix = cms.untracked.string("tkIsoEle")
 
+ntuple_TTTracksEmu = ntuple_TTTracks.clone()
+ntuple_TTTracksEmu.TTTracks = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
+ntuple_TTTracksEmu.BranchNamePrefix = cms.untracked.string("l1trackemu")
+
 process.hgcalTriggerNtuplizer.Ntuples.append(ntuple_egammaEE)
 process.hgcalTriggerNtuplizer.Ntuples.append(ntuple_TTTracks)
 process.hgcalTriggerNtuplizer.Ntuples.append(ntuple_tkEleHGC)
 process.hgcalTriggerNtuplizer.Ntuples.append(ntuple_tkIsoEleHGC)
+process.hgcalTriggerNtuplizer.Ntuples.append(ntuple_TTTracksEmu)
 
+
+for seq in [process.simCaloStage2Layer1Digis,
+            process.simCaloStage2Digis,
+            process.simDtTriggerPrimitiveDigis,
+            process.simCscTriggerPrimitiveDigis,
+            process.simBmtfDigis,
+            process.simKBmtfStubs,
+            process.simKBmtfDigis,
+            process.simEmtfDigis,
+            process.simOmtfDigis,
+            process.simGmtCaloSumDigis,
+            process.simGmtStage2Digis,
+            process.simMuonME0PseudoReDigisCoarse,
+            process.me0RecHitsCoarse,
+            process.me0TriggerPseudoDigis,
+            process.simGtExtFakeStage2Digis,
+            process.simGtStage2Digis,
+            process.hgcalTowerMapProducer,
+            process.hgcalTowerProducer,
+            process.simEcalEBTriggerPrimitiveDigis,
+            process.VertexProducer,
+            process.l1EGammaCrystalsProducer]:
+    if not process.L1simulation_step.remove(seq):
+        print 'Failed to remove sequence: {}'.format(seq)
+
+process.caloTruth_step.remove(process.hgcalTruthTowerMapProducer)
+process.caloTruth_step.remove(process.hgcalTruthTowerProducer)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.L1simulation_step, process.caloTruth_step, process.ntuple_step, process.endjob_step)
+process.schedule = cms.Schedule(process.L1simulation_step, process.caloTruth_step, process.TTTracksEmulation, process.ntuple_step, process.endjob_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
+process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",
+                                        ignoreTotal = cms.untracked.int32(1)
+                                        )
 
 # Customisation from command line
 
@@ -231,3 +274,7 @@ process = customiseEarlyDelete(process)
 # process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",
 #     ignoreTotal = cms.untracked.int32(1)
 # )
+
+# from L1Trigger.L1THGCal.customTriggerGeometry import custom_geometry_V9
+# process = custom_geometry_V9(process, implementation=2)
+# End adding early deletion
