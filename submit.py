@@ -65,10 +65,10 @@ def splitFiles(files, splitting_mode, splitting_granularity):
                 split_files.append([file_name])
                 logic = '1:{}-1:{}'.format(ls, ls)
                 split_logic.append(logic)
-    elif splitting_mode == 'EventAwareLumiBased':
+    elif splitting_mode == 'EventAwareLumiBased' or splitting_mode == 'Automatic':
         pass
     else:
-        print 'Splitting-Mode: {} is not implemented! Exiting...'.format(splitting_mode)
+        print '[submission] Splitting-Mode: {} is not implemented! Exiting...'.format(splitting_mode)
         sys.exit(6)
     return split_files, split_logic
 
