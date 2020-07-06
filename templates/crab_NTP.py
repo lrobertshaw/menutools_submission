@@ -1,4 +1,4 @@
-from CRABClient.UserUtilities import config, getUsernameFromSiteDB
+from CRABClient.UserUtilities import config
 config = config()
 
 # config.General.requestName = 'SingleGammaPt25Eta1p6_2p8_PU0'
