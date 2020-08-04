@@ -13,6 +13,7 @@ config.General.transferLogs = False
 
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'TEMPL_TASKCONFDIR/input_cfg.py'
+config.JobType.maxMemoryMB = 3000
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'TEMPL_SPLITTINGMODE'
