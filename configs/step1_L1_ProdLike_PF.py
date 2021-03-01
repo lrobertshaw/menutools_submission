@@ -24,7 +24,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(50),
+    input = cms.untracked.int32(100),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -114,8 +114,8 @@ process.L1TrackTrigger.remove(process.TTTrackAssociatorFromPixelDigisExtended)
 
 # load ntuplizer
 process.load('L1Trigger.L1CaloTrigger.L1TCaloTriggerNtuples_cff')
-# process.ntuple_step = cms.Path(process.l1CaloTriggerNtuples)
-process.ntuple_step = cms.Path(process.l1CaloTriggerNtuplizer_egOnly)
+process.ntuple_step = cms.Path(process.l1CaloTriggerNtuples)
+# process.ntuple_step = cms.Path(process.l1CaloTriggerNtuplizer_egOnly)
 
 process.TFileService = cms.Service(
     "TFileService",
@@ -175,3 +175,72 @@ process = addMonitoring(process)
 from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
 process = customiseEarlyDelete(process)
 # End adding early deletion
+
+
+
+# define regions
+def goRegional(postfix="", relativeCoordinates=False):
+    overlap=0.25 # 0.3
+    getattr(process, 'l1pfProducer'+postfix+'Barrel').regions = cms.VPSet(
+        cms.PSet(
+            etaBoundaries = cms.vdouble(-1.5, -0.5, 0.5, 1.5),
+            etaExtra = cms.double(overlap),
+            phiExtra = cms.double(overlap),
+            phiSlices = cms.uint32(9)
+        )
+    )
+    getattr(process, 'l1pfProducer'+postfix+'HGCalNoTK').regions = cms.VPSet(
+        cms.PSet(
+            etaBoundaries = cms.vdouble(-3, -2.5),
+            etaExtra = cms.double(overlap),
+            phiExtra = cms.double(overlap),
+            phiSlices = cms.uint32(9)
+        ),
+        cms.PSet(
+            etaBoundaries = cms.vdouble(2.5, 3),
+            etaExtra = cms.double(overlap),
+            phiExtra = cms.double(overlap),
+            phiSlices = cms.uint32(9)
+        )
+    )
+    getattr(process, 'l1pfProducer'+postfix+'HGCal').regions = cms.VPSet(
+        cms.PSet(
+            etaBoundaries = cms.vdouble(-2.5, -1.5),
+            etaExtra = cms.double(overlap),
+            phiExtra = cms.double(overlap),
+            phiSlices = cms.uint32(9)
+        ),
+        cms.PSet(
+            etaBoundaries = cms.vdouble(1.5, 2.5),
+            etaExtra = cms.double(overlap),
+            phiExtra = cms.double(overlap),
+            phiSlices = cms.uint32(9)
+        )
+    )
+    getattr(process, 'l1pfProducer'+postfix+'HF').regions = cms.VPSet(
+        cms.PSet(
+            etaBoundaries = cms.vdouble(-5, -4, -3),
+            etaExtra = cms.double(overlap),
+            phiExtra = cms.double(overlap),
+            phiSlices = cms.uint32(9)
+        ),
+        cms.PSet(
+            etaBoundaries = cms.vdouble(3, 4, 5),
+            etaExtra = cms.double(overlap),
+            phiExtra = cms.double(overlap),
+            phiSlices = cms.uint32(9)
+        )
+    )
+    for D in 'Barrel', 'HGCal', 'HGCalNoTK', 'HF':
+        getattr(process, 'l1pfProducer'+postfix+D).useRelativeRegionalCoordinates = relativeCoordinates
+
+
+def doDumpFile(basename="DoubleElectron_PU200"):
+    goRegional(relativeCoordinates=True)
+    for det in "Barrel", "HGCal", "HGCalNoTK", "HF":
+        l1pf = getattr(process, 'l1pfProducer'+det)
+        l1pf.dumpFileName = cms.untracked.string(basename+"_"+det+".dump")
+        l1pf.genOrigin = cms.InputTag("genParticles","xyz0")
+    process.maxEvents.input = 1000
+
+# doDumpFile()
