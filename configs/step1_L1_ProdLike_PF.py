@@ -24,7 +24,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100),
+    input = cms.untracked.int32(10),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -33,7 +33,10 @@ process.source = cms.Source("PoolSource",
     # fileNames = cms.untracked.vstring('file:/data/cerminar/Phase2HLTTDRSummer20ReRECOMiniAOD/DoubleElectron_FlatPt-1To100/GEN-SIM-DIGI-RAW-MINIAOD/PU200_111X_mcRun4_realistic_T15_v1-v2/E2F32293-BA24-C646-8060-CE3B4A9E5D4B.root'),
     fileNames = cms.untracked.vstring('file:/data/cerminar/Phase2HLTTDRSummer20ReRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/FEVT/PU200_111X_mcRun4_realistic_T15_v1-v2/003ACFBC-23B2-EA45-9A12-BECFF07760FC.root'),
     # fileNames = cms.untracked.vstring('file:/data/cerminar/Phase2HLTTDRWinter20DIGI/SingleElectron_PT2to200/GEN-SIM-DIGI-RAW/PU200_110X_mcRun4_realistic_v3_ext2-v2/F32C5A21-F0E9-9149-B04A-883CC704E820.root'),
-    secondaryFileNames = cms.untracked.vstring()
+    secondaryFileNames = cms.untracked.vstring(),
+           
+    # eventsToProcess = cms.untracked.VEventRange('1:162232-1:162232', ),
+    # lumisToProcess = cms.untracked.VLuminosityBlockRange('1:978-1:978'),
 )
 
 process.options = cms.untracked.PSet(
@@ -114,14 +117,27 @@ process.L1TrackTrigger.remove(process.TTTrackAssociatorFromPixelDigisExtended)
 
 # load ntuplizer
 process.load('L1Trigger.L1CaloTrigger.L1TCaloTriggerNtuples_cff')
-process.ntuple_step = cms.Path(process.l1CaloTriggerNtuples)
-# process.ntuple_step = cms.Path(process.l1CaloTriggerNtuplizer_egOnly)
+# process.ntuple_step = cms.Path(process.l1CaloTriggerNtuples)
+process.ntuple_step = cms.Path(process.l1CaloTriggerNtuplizer_egOnly)
 
 process.TFileService = cms.Service(
     "TFileService",
     fileName = cms.string("ntuple.root")
     )
-
+    
+    
+process.load("L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff")
+process.load('L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff')
+process.runPF_newemulator = cms.Path( 
+    process.pfTracksFromL1Tracks +
+    process.l1ParticleFlow_calo +
+    process.l1ctLayer1Barrel +
+    process.l1ctLayer1HGCal +
+    process.l1ctLayer1HGCalNoTK +
+    process.l1ctLayer1HF +
+    process.l1ctLayer1 +
+    process.l1ctLayer1EG
+)
 
 # process.L1simulation_step.remove(process.L1TkElectronsCrystal)
 # process.L1simulation_step.remove(process.L1TkElectronsLooseCrystal)
@@ -131,7 +147,7 @@ process.TFileService = cms.Service(
 
 # Schedule definition
 # process.schedule = cms.Schedule(process.raw2digi_step,process.L1TrackTrigger_step,process.L1simulation_step,process.ntuple_step)
-process.schedule = cms.Schedule(process.raw2digi_step,process.L1simulation_step,process.ntuple_step)
+process.schedule = cms.Schedule(process.raw2digi_step,process.L1simulation_step,process.runPF_newemulator,process.ntuple_step)
 
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
@@ -140,7 +156,7 @@ associatePatAlgosToolsTask(process)
 process.options.numberOfThreads=cms.untracked.uint32(1)
 process.options.numberOfStreams=cms.untracked.uint32(0)
 process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
-
+process.options.SkipEvent = cms.untracked.vstring('ProductNotFound')
 # customisation of the process.
 
 # Automatic addition of the customisation function from SLHCUpgradeSimulations.Configuration.aging
@@ -241,6 +257,6 @@ def doDumpFile(basename="DoubleElectron_PU200"):
         l1pf = getattr(process, 'l1pfProducer'+det)
         l1pf.dumpFileName = cms.untracked.string(basename+"_"+det+".dump")
         l1pf.genOrigin = cms.InputTag("genParticles","xyz0")
-    process.maxEvents.input = 1000
+    process.maxEvents.input = 2
 
 # doDumpFile()
