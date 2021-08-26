@@ -126,18 +126,7 @@ process.TFileService = cms.Service(
     )
     
     
-process.load("L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff")
-process.load('L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff')
-process.runPF_newemulator = cms.Path( 
-    process.pfTracksFromL1Tracks +
-    process.l1ParticleFlow_calo +
-    process.l1ctLayer1Barrel +
-    process.l1ctLayer1HGCal +
-    process.l1ctLayer1HGCalNoTK +
-    process.l1ctLayer1HF +
-    process.l1ctLayer1 +
-    process.l1ctLayer1EG
-)
+# process.load("L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff")
 
 # process.L1simulation_step.remove(process.L1TkElectronsCrystal)
 # process.L1simulation_step.remove(process.L1TkElectronsLooseCrystal)
@@ -238,7 +227,7 @@ for step in to_remove:
 print ("AFTER: {}".format(process.SimL1Emulator))
 process.L1simulation_step = cms.Path(process.SimL1Emulator)
 
-process.schedule = cms.Schedule(process.raw2digi_step,process.L1simulation_step,process.runPF_newemulator, process.ntuple_step)
+process.schedule = cms.Schedule(process.raw2digi_step,process.L1simulation_step, process.ntuple_step)
 
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
@@ -283,6 +272,53 @@ from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEar
 process = customiseEarlyDelete(process)
 # End adding early deletion
 
+
+def useTkInputEmulator(postfix="",bitwise=True,newTrackWord=True):
+    process.pfTracksFromL1Tracks.redigitizeTrackWord = newTrackWord
+    if postfix:
+        prodhgcal = process.l1ctLayer1HGCal.clone()
+        setattr(process, 'l1ctLayer1HGCal' + postfix, prodhgcal)
+        merger = process.l1ctLayer1.clone(
+            pfProducers = [  cms.InputTag("l1ctLayer1Barrel"), cms.InputTag("l1ctLayer1HGCal" + postfix), cms.InputTag("l1ctLayer1HGCalNoTK"), cms.InputTag("l1ctLayer1HF") ])
+        setattr(process, 'l1ctLayer1' + postfix, merger)
+        monitorPerf("L1PF"+ postfix,    "l1ctLayer1"+postfix+":PF")
+        monitorPerf("L1Puppi"+ postfix, "l1ctLayer1"+postfix+":Puppi")
+        egmerger = process.l1ctLayer1EG.clone()
+        egmerger.tkElectrons[0].pfProducers = [ cms.InputTag("l1ctLayer1HGCal" + postfix, "L1TkEle") ]
+        egmerger.tkEms[0].pfProducers = [ cms.InputTag("l1ctLayer1HGCal" + postfix, "L1TkEm"),  cms.InputTag("l1ctLayer1HGCalNoTK", "L1TkEm")  ]
+        egmerger.tkEgs[0].pfProducers = [ cms.InputTag("l1ctLayer1HGCal" + postfix, "L1Eg"),  cms.InputTag("l1ctLayer1HGCalNoTK", "L1Eg")  ]
+        setattr(process, 'l1ctLayer1EG' + postfix, egmerger)
+        process.extraPFStuff.add(prodhgcal, merger, egmerger)
+    else:
+        prodhgcal = process.l1ctLayer1HGCal
+    prodhgcal.trackInputConversionAlgo = "Emulator"
+    prodhgcal.trackInputConversionParameters = cms.PSet(
+            region = cms.string("endcap"),
+            trackWordEncoding = cms.string("biased" if newTrackWord else "stepping"),
+            bitwiseAccurate = cms.bool(bitwise),
+            ptLUTBits = cms.uint32(11),
+            etaLUTBits = cms.uint32(11),
+            etaPreOffs = cms.int32(0),
+            etaShift = cms.uint32(15-11),
+            etaPostOffs = cms.int32(150),
+            phiBits = cms.uint32(10),
+            z0Bits = cms.uint32(12),
+            dEtaHGCalBits = cms.uint32(10),
+            dEtaHGCalZ0PreShift = cms.uint32(2),
+            dEtaHGCalRInvPreShift = cms.uint32(6),
+            dEtaHGCalLUTBits = cms.uint32(10),
+            dEtaHGCalLUTShift = cms.uint32(2),
+            dEtaHGCalFloatOffs = cms.double(0.0),
+            dPhiHGCalBits = cms.uint32(4),
+            dPhiHGCalZ0PreShift = cms.uint32(4),
+            dPhiHGCalZ0PostShift = cms.uint32(6),
+            dPhiHGCalRInvShift = cms.uint32(4),
+            dPhiHGCalTanlInvShift = cms.uint32(22),
+            dPhiHGCalTanlLUTBits = cms.uint32(10),
+            dPhiHGCalFloatOffs = cms.double(0.0)
+            )
+
+useTkInputEmulator()
 
 
 # define regions
