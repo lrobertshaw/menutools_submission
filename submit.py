@@ -6,33 +6,44 @@ import os
 import sys
 import shutil
 import subprocess
+import platform
+
+import yaml
+
+def parse_yaml(filename):
+    with open(filename, 'r') as stream:
+        if '3.8' in platform.python_version():
+            cfgfile = yaml.load(stream, Loader=yaml.FullLoader)
+        else:
+            cfgfile = yaml.load(stream)
+    return cfgfile
+
+
 
 
 class TaskConfig:
     def __init__(self, taskName, cfgfile):
-        print 'TN: {}'.format(taskName)
+        print('TN: {}'.format(taskName))
+        common_config = cfgfile['Common']
+        task_config = cfgfile[taskName]
+
         self.task_name = taskName
+        self.version = common_config['version']
+        self.cmssw_config = common_config['cmssw_config']
+        
+        for key, value in task_config.items():
+            setattr(self, key, value)
 
-        self.version = cfgfile.get('Common', 'version')
-        self.cmssw_config = cfgfile.get('Common', 'cmssw_config')
-        self.crab = False
-
-        for task_opt in cfgfile.options(self.task_name):
-            if task_opt == 'crab':
-                self.crab = cfgfile.getboolean(taskName, task_opt)
-            else:
-                setattr(self, task_opt, cfgfile.get(taskName, task_opt))
-
-        self.task_dir = '{}/{}/{}'.format(cfgfile.get('Common', 'name'),
-                                          cfgfile.get('Common', 'version'),
+        self.task_dir = '{}/{}/{}'.format(common_config['name'],
+                                          common_config['version'],
                                           taskName)
-        self.output_dir_base = cfgfile.get('Common', 'output_dir_base')
-        self.output_dir = '{}/{}/{}/{}'.format(cfgfile.get('Common', 'output_dir_base'),
+        self.output_dir_base = common_config['output_dir_base']
+        self.output_dir = '{}/{}/{}/{}'.format(common_config['output_dir_base'],
                                                self.task_name,
-                                               cfgfile.get('Common', 'mode'),
+                                               common_config['mode'],
                                                self.version)
-        self.ncpu = cfgfile.get('Common', 'ncpu')
-        self.output_file_name = cfgfile.get('Common', 'output_file_name')
+        self.ncpu = common_config['ncpu']
+        self.output_file_name = common_config['output_file_name']
 
     def __str__(self):
         return 'task-name {}: version {}'.format(self.task_name, self.version)
@@ -109,13 +120,16 @@ def getJobParams(mode, task_conf):
     params = {}
     if mode == 'NTP' or mode == 'L1IN' or mode == 'SIMDIGI':
         input_files = []
-        if task_conf.input_directory != '' and task_conf.input_directory != 'None' and not task_conf.crab:
-            print 'Reading inpout files from directory: {}'.format(task_conf.input_directory)
-            input_files = ['root://eoscms.cern.ch/'+os.path.join(task_conf.input_directory, file_name) for file_name in os.listdir(task_conf.input_directory) if file_name.endswith('.root')]
-
-        if task_conf.input_dataset != '' and task_conf.input_dataset != 'None' and not task_conf.crab:
-            print 'Reading inpout files from dataset: {}'.format(task_conf.input_dataset)
-            input_files = getFilesForDataset(task_conf.input_dataset, site='T2_CH_CERN')
+        if not task_conf.crab:
+            if hasattr(task_conf, 'input_directory'):
+                print('Reading inpout files from directory: {}'.format(task_conf.input_directory))
+                input_files = ['root://eoscms.cern.ch/'+os.path.join(task_conf.input_directory, file_name) for file_name in os.listdir(task_conf.input_directory) if file_name.endswith('.root')]
+            elif hasattr(task_conf, 'input_dataset'):
+                print('Reading inpout files from dataset: {}'.format(task_conf.input_dataset))
+                input_files = getFilesForDataset(task_conf.input_dataset, site='T2_CH_CERN')
+            else:
+                print('ERROR: no input specified for task: {}'.format(task_conf.task_name))
+                sys.exit(1)
         # print input_files
 
         split_files, split_logic = splitFiles(input_files, task_conf.splitting_mode, task_conf.splitting_granularity)
@@ -156,7 +170,8 @@ def getJobParams(mode, task_conf):
         params['TEMPL_ABSTASKCONFDIR'] = os.path.join(os.environ["PWD"], params['TEMPL_TASKCONFDIR'])
         params['TEMPL_OUTFILE'] = task_conf.output_file_name
         params['TEMPL_OUTDIR'] = task_conf.output_dir
-        params['TEMPL_JOBFLAVOR'] = task_conf.job_flavor
+        if not task_conf.crab:
+            params['TEMPL_JOBFLAVOR'] = task_conf.job_flavor
         params['TEMPL_NCPU'] = task_conf.ncpu
         params['TEMPL_SPLITGRANULARITY'] = task_conf.splitting_granularity
         params['TEMPL_SPLITTINGMODE'] = task_conf.splitting_mode
@@ -269,7 +284,7 @@ def createCrabConfig(mode, params):
 
 
 def createTaskSetup(task_config, config_file):
-    mode = config_file.get('Common', 'mode')
+    mode = config_file['Common']['mode']
     pwd = os.environ["PWD"]
     if not os.path.exists(task_config.task_dir):
         print "   creating task directory {}".format(task_config.task_dir)
@@ -347,19 +362,26 @@ def main():
     global opt, args
     (opt, args) = parser.parse_args()
 
-    cfgfile = ConfigParser.ConfigParser()
-    cfgfile.optionxform = str
+    # cfgfile = ConfigParser.ConfigParser()
+    # cfgfile.optionxform = str
+    # 
+    # cfgfile.read(opt.CONFIGFILE)
+    
+    
+    cfgfile = {}
+    cfgfile.update(parse_yaml(opt.CONFIGFILE))
 
-    cfgfile.read(opt.CONFIGFILE)
-    sub_name = cfgfile.get('Common', 'name')
-    tasks = [task.strip() for task in cfgfile.get('Common', 'tasks').split(',') if task != '']
+    print(cfgfile)
+    
+    sub_name = cfgfile['Common']['name']
+    tasks = cfgfile['Common']['tasks']
     task_configs = []
-    print tasks
+    print(tasks)
     for task in tasks:
         task_configs.append(TaskConfig(task, cfgfile))
 
     for task_conf in task_configs:
-        print task_conf
+        print(task_conf)
 
     if opt.CREATE:
         for task_conf in task_configs:
