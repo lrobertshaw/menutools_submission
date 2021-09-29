@@ -7,6 +7,8 @@ import sys
 import shutil
 import subprocess
 import platform
+import tarfile
+from process_pickler import pickler
 
 import yaml
 
@@ -19,11 +21,86 @@ def parse_yaml(filename):
     return cfgfile
 
 
+class SandboxTarball(object):
+    def __init__(self, name=None, mode='w:bz2', params=None):
+        self.params = params
+        self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
+        self.checksum = None
+        self.content = None
+
+    def addFiles(self, cfgOutputName=None):
+        """
+        Add the necessary files to the tarball
+        """
+        directories = ['lib', 'biglib', 'module', 'bin']
+        # Note that dataDirs are only looked-for and added under the src/ folder.
+        # /data/ subdirs contain data files needed by the code
+        # /interface/ subdirs contain C++ header files needed e.g. by ROOT6
+        dataDirs = ['data', 'interface']
+
+        # Tar up whole directories
+        for directory in directories:
+            fullPath = os.path.join(self.params['TEMPL_CMSSWBASE'], directory)
+            print("Checking directory %s" % fullPath)
+            if os.path.exists(fullPath):
+                print("Adding directory %s to tarball" % fullPath)
+                self.checkdirectory(fullPath)
+                self.tarfile.add(fullPath, directory, recursive=True)
+
+        # Search for and tar up "data" directories in src/
+        srcPath = os.path.join(self.params['TEMPL_CMSSWBASE'], 'src')
+        for root, _, _ in os.walk(srcPath):
+            if os.path.basename(root) in dataDirs:
+                directory = root.replace(srcPath, 'src')
+                print("Adding data directory %s to tarball" % root)
+                self.checkdirectory(root)
+                self.tarfile.add(root, directory, recursive=True)
+
+
+    def writeContent(self):
+        """Save the content of the tarball"""
+        self.content = [(int(x.size), x.name) for x in self.tarfile.getmembers()]
+
+
+    def close(self):
+        """
+        Calculate the checkum and close
+        """
+        self.writeContent()
+        return self.tarfile.close()
+
+    def printSortedContent(self):
+        """
+	To be used for diagnostic printouts
+        returns a string containing tarball content as a list of files sorted by size
+        already formatted for use in a print statement
+        """
+        sortedContent = sorted(self.content, reverse=True)
+        biggestFileSize = sortedContent[0][0]
+        ndigits = int(math.ceil(math.log(biggestFileSize+1, 10)))
+        contentList = "\nsandbox content sorted by size[Bytes]:"
+        for (size, name) in sortedContent:
+            contentList += ("\n%" + str(ndigits) + "s\t%s") % (size, name)
+        return contentList
+
+
+    def checkdirectory(self, dir_):
+        #checking for infinite symbolic link loop
+        try:
+            for root, _, files in os.walk(dir_, followlinks=True):
+                for file_ in files:
+                    os.stat(os.path.join(root, file_))
+        except OSError as msg:
+            err = '%sError%s: Infinite directory loop found in: %s \nStderr: %s' % \
+                    (colors.RED, colors.NORMAL, dir_, msg)
+            raise EnvironmentException(err)
+
+
 
 
 class TaskConfig:
     def __init__(self, taskName, cfgfile):
-        print('TN: {}'.format(taskName))
+        # print('Task: {}'.format(taskName))
         common_config = cfgfile['Common']
         task_config = cfgfile[taskName]
 
@@ -34,14 +111,19 @@ class TaskConfig:
         for key, value in task_config.items():
             setattr(self, key, value)
 
-        self.task_dir = '{}/{}/{}'.format(common_config['name'],
-                                          common_config['version'],
-                                          taskName)
+        self.task_base_dir = '{}/{}/'.format(
+            common_config['name'],
+            common_config['version'])
+        self.task_dir = '{}/{}/{}'.format(
+            common_config['name'],
+            common_config['version'],
+            taskName)
         self.output_dir_base = common_config['output_dir_base']
-        self.output_dir = '{}/{}/{}/{}'.format(common_config['output_dir_base'],
-                                               self.task_name,
-                                               common_config['mode'],
-                                               self.version)
+        self.output_dir = '{}/{}/{}/{}'.format(
+            common_config['output_dir_base'],
+            self.task_name,
+            common_config['mode'],
+            self.version)
         self.ncpu = common_config['ncpu']
         self.output_file_name = common_config['output_file_name']
 
@@ -76,8 +158,8 @@ def splitFiles(files, splitting_mode, splitting_granularity):
                 split_files.append([file_name])
                 logic = '1:{}-1:{}'.format(ls, ls)
                 split_logic.append(logic)
-    elif splitting_mode == 'EventAwareLumiBased' or splitting_mode == 'Automatic':
-        pass
+    # elif splitting_mode == 'EventAwareLumiBased' or splitting_mode == 'Automatic':
+    #     pass
     else:
         print '[submission] Splitting-Mode: {} is not implemented! Exiting...'.format(splitting_mode)
         sys.exit(6)
@@ -132,22 +214,32 @@ def getJobParams(mode, task_conf):
                 sys.exit(1)
         # print input_files
 
-        split_files, split_logic = splitFiles(input_files, task_conf.splitting_mode, task_conf.splitting_granularity)
-        n_jobs_max = len(split_files)
-        n_jobs = n_jobs_max
-        if(hasattr(task_conf, 'max_njobs')):
-            n_jobs = min(n_jobs_max, task_conf.max_njobs)
+        max_events = -1
+        # FIXME: this is not considered when submitting tasks without crab...for now
+        if(hasattr(task_conf, 'max_events')):
+            max_events = task_conf.max_events
 
         if not task_conf.crab:
+            split_files, split_logic = splitFiles(input_files, task_conf.splitting_mode, task_conf.splitting_granularity)
+            n_jobs_max = len(split_files)
+            n_jobs = n_jobs_max
+            if(hasattr(task_conf, 'max_njobs')):
+                n_jobs = min(n_jobs_max, task_conf.max_njobs)
+
             print 'preparing batch submission:'
             print '  # of files: {}'.format(len(input_files))
             print '  # of jobs: {}'.format(n_jobs)
+            params['NJOBS'] = n_jobs
+            params['TEMPL_JOBFLAVOR'] = task_conf.job_flavor
+            params['INFILES'] = split_files
+            params['SEEDS'] = range(0, n_jobs)
+            params['SPLIT'] = split_logic
+            params['TEMPL_NEVENTS'] = -1
+
         else:
             print 'preparing crab submission'
+            params['TEMPL_NEVENTS'] = max_events
 
-        max_events = -1
-        if(hasattr(task_conf, 'max_events')):
-            max_events = task_conf.max_events
         split_pu_files = []
         if(hasattr(task_conf, 'pu_dataset')):
             pu_files = getFilesForDataset(dataset=task_conf.pu_dataset, site=None)
@@ -159,26 +251,35 @@ def getJobParams(mode, task_conf):
                                                         splitting_granularity=pu_splitting_granularity)
             print len(split_pu_files)
         # the first 2 are compulsory for all modes
-        params['NJOBS'] = n_jobs
-        params['INFILES'] = split_files
         params['PUFILES'] = split_pu_files
-        params['SEEDS'] = range(0, n_jobs)
-        params['SPLIT'] = split_logic
-        params['TEMPL_NEVENTS'] = max_events
+        
+        params['TEMPL_TASKBASEDIR'] = task_conf.task_base_dir
+        params['TEMPL_ABSTASKBASEDIR'] = os.path.join(os.environ["PWD"], task_conf.task_base_dir)
         params['TEMPL_TASKDIR'] = task_conf.task_dir
         params['TEMPL_TASKCONFDIR'] = '{}/conf'.format(task_conf.task_dir)
         params['TEMPL_ABSTASKCONFDIR'] = os.path.join(os.environ["PWD"], params['TEMPL_TASKCONFDIR'])
         params['TEMPL_OUTFILE'] = task_conf.output_file_name
         params['TEMPL_OUTDIR'] = task_conf.output_dir
-        if not task_conf.crab:
-            params['TEMPL_JOBFLAVOR'] = task_conf.job_flavor
         params['TEMPL_NCPU'] = task_conf.ncpu
         params['TEMPL_SPLITGRANULARITY'] = task_conf.splitting_granularity
         params['TEMPL_SPLITTINGMODE'] = task_conf.splitting_mode
         params['TEMPL_REQUESTNAME'] = task_conf.task_name
-        params['TEMPL_INPUTDATASET'] = task_conf.input_dataset
+        if hasattr(task_conf, 'input_dataset'):
+            params['TEMPL_INPUTDATASET'] = task_conf.input_dataset
         params['TEMPL_DATASETTAG'] = '{}_{}'.format(task_conf.task_name, task_conf.version)
         params['TEMPL_CRABOUTDIR'] = task_conf.output_dir_base.split('/eos/cms')[1].replace('/cmst3/', '/group/cmst3/')
+
+        def get_from_env(variable):
+            if variable in os.environ:
+                return os.environ[variable]
+            else:
+                print("ERROR: {} not found in shell enviroment!".format(variable))
+                sys.exit(11)
+
+        if not task_conf.crab:
+            params['TEMPL_SCRAMARCH'] = get_from_env('SCRAM_ARCH')
+            params['TEMPL_CMSSWBASE'] = get_from_env('CMSSW_BASE')
+            params['TEMPL_CMSSWVERSION'] = get_from_env('CMSSW_VERSION')
 
 
     else:
@@ -191,6 +292,16 @@ def formatFileList(input_files):
     input_file_names = ['\'{}\''.format(file_name) for file_name in input_files]
     return ',\n'.join(input_file_names)
 
+
+def createJobSandbox(params):
+    sb_tar_name = os.path.join(params['TEMPL_TASKBASEDIR'], 'sandbox.tgz')
+    if not os.path.isfile(sb_tar_name):
+        print('--- Creating sandbox tar: {}'.format(sb_tar_name))
+        sb_tar = SandboxTarball(name=sb_tar_name, params=params)
+        sb_tar.addFiles()
+        sb_tar.close()
+    else:
+        print('NOTE: Sandbox tar: {} already exists, reusing it!'.format(sb_tar_name))
 
 def createJobConfig(mode, params):
     custom_template_filename = 'templates/jobCustomization_{}_cfg.py'.format(mode)
@@ -263,6 +374,7 @@ def createJobExecutable(mode, params):
     templs_keys = [key for key in params.keys() if 'TEMPL_' in key]
     for key in templs_keys:
         params_file.write('{}={}\n'.format(key.split('_')[1], str(params[key])))
+    
     params_file.close()
 
 
@@ -300,11 +412,15 @@ def createTaskSetup(task_config, config_file):
             print "Unexpected error:", sys.exc_info()[0]
             print sys.exit(2)
 
-    shutil.copy(task_config.cmssw_config, '{}/conf/input_cfg.py'.format(task_config.task_dir))
-    shutil.copy("process_pickler.py", '{}/conf/process_pickler.py'.format(task_config.task_dir))
+    # shutil.copy(task_config.cmssw_config, '{}/conf/input_cfg.py'.format(task_config.task_dir))
+    
+    pickler(task_config.cmssw_config, 'input_cfg.py')
+    shutil.copy("input_cfg.py", '{}/conf/input_cfg.py'.format(task_config.task_dir))
+    shutil.copy("input_cfg.pkl", '{}/conf/input_cfg.pkl'.format(task_config.task_dir))
 
     params = getJobParams(mode, task_config)
     if not task_config.crab:
+        createJobSandbox(params)
         createJobConfig(mode, params)
         createCondorConfig(mode, params)
         createJobExecutable(mode, params)
@@ -370,8 +486,6 @@ def main():
     
     cfgfile = {}
     cfgfile.update(parse_yaml(opt.CONFIGFILE))
-
-    print(cfgfile)
     
     sub_name = cfgfile['Common']['name']
     tasks = cfgfile['Common']['tasks']

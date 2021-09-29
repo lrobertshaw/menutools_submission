@@ -5,23 +5,9 @@ import imp
 import traceback
 
 
-def main():
-    usage = ('usage: %prog [options]\n'
-             + '%prog -h for help')
-    parser = optparse.OptionParser(usage)
-    # parser.add_option('-f', '--file', dest='CONFIGFILE', help='specify the ini configuration file')
-    # parser.add_option("--create", action="store_true", dest="CREATE", default=False, help="create the job configuration")
-    # parser.add_option("--submit", action="store_true", dest="SUBMIT", default=False, help="submit the jobs to condor")
-    # parser.add_option("--status", action="store_true", dest="STATUS", default=False, help="check the status of the condor tasks")
-
-    global opt, args
-    (opt, args) = parser.parse_args()
-
-    input_file = args[0]
-    output_file = args[1]
-
-    print 'input {}'.format(input_file)
-    print 'output {}'.format(output_file)
+def pickler(input_file, output_file):
+    print('input {}'.format(input_file))
+    print('output {}'.format(output_file))
 
     handle = open(input_file, 'r')
     cfo = imp.load_source("pycfg", input_file, handle)
@@ -47,6 +33,22 @@ def main():
         psetFile.close()
         pklFile.close()
 
+
+def main():
+    usage = ('usage: %prog [options]\n'
+             + '%prog -h for help')
+    parser = optparse.OptionParser(usage)
+    # parser.add_option('-f', '--file', dest='CONFIGFILE', help='specify the ini configuration file')
+    # parser.add_option("--create", action="store_true", dest="CREATE", default=False, help="create the job configuration")
+    # parser.add_option("--submit", action="store_true", dest="SUBMIT", default=False, help="submit the jobs to condor")
+    # parser.add_option("--status", action="store_true", dest="STATUS", default=False, help="check the status of the condor tasks")
+
+    global opt, args
+    (opt, args) = parser.parse_args()
+
+    input_file = args[0]
+    output_file = args[1]
+    pickler(input_file, output_file)
 
 if __name__ == "__main__":
     main()
