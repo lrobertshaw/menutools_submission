@@ -415,8 +415,8 @@ def createTaskSetup(task_config, config_file):
     # shutil.copy(task_config.cmssw_config, '{}/conf/input_cfg.py'.format(task_config.task_dir))
     
     pickler(task_config.cmssw_config, 'input_cfg.py')
-    shutil.copy("input_cfg.py", '{}/conf/input_cfg.py'.format(task_config.task_dir))
-    shutil.copy("input_cfg.pkl", '{}/conf/input_cfg.pkl'.format(task_config.task_dir))
+    shutil.move("input_cfg.py", '{}/conf/input_cfg.py'.format(task_config.task_dir))
+    shutil.move("input_cfg.pkl", '{}/conf/input_cfg.pkl'.format(task_config.task_dir))
 
     params = getJobParams(mode, task_config)
     if not task_config.crab:
