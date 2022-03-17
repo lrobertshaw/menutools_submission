@@ -15,13 +15,13 @@ def pickler(input_file, output_file):
     handle.close()
 
     pklFile_name = '{}.pkl'.format(output_file.split('.')[0])
-    pklFile = open(pklFile_name, "w")
+    pklFile = open(pklFile_name, "wb")
     psetFile = open(output_file, "w")
     try:
         pickle.dump(cmsProcess, pklFile)
         psetFile.write("import FWCore.ParameterSet.Config as cms\n")
         psetFile.write("import pickle\n")
-        psetFile.write("handle = open('{}')\n".format(pklFile_name))
+        psetFile.write("handle = open('{}', 'rb')\n".format(pklFile_name))
         psetFile.write("process = pickle.load(handle)\n")
         psetFile.write("handle.close()\n")
         psetFile.close()

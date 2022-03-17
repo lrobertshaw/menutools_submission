@@ -1,7 +1,7 @@
 ###!/usr/bin/python
 
 import optparse
-import ConfigParser
+import configparser
 import os
 import sys
 import shutil
@@ -108,7 +108,7 @@ class TaskConfig:
         self.version = common_config['version']
         self.cmssw_config = common_config['cmssw_config']
         
-        for key, value in task_config.items():
+        for key, value in list(task_config.items()):
             setattr(self, key, value)
 
         self.task_base_dir = '{}/{}/'.format(
@@ -232,7 +232,7 @@ def getJobParams(mode, task_conf):
             params['NJOBS'] = n_jobs
             params['TEMPL_JOBFLAVOR'] = task_conf.job_flavor
             params['INFILES'] = split_files
-            params['SEEDS'] = range(0, n_jobs)
+            params['SEEDS'] = list(range(0, n_jobs))
             params['SPLIT'] = split_logic
             params['TEMPL_NEVENTS'] = -1
 
@@ -327,7 +327,7 @@ def createJobConfig(mode, params):
 
         custom_template = custom_template.replace('TEMPL_SEED', str(params['SEEDS'][job_idx]))
 
-        templs_keys = [key for key in params.keys() if 'TEMPL_' in key]
+        templs_keys = [key for key in list(params.keys()) if 'TEMPL_' in key]
         for key in templs_keys:
             custom_template = custom_template.replace(key, str(params[key]))
 
@@ -353,7 +353,7 @@ def createCondorConfig(mode, params):
     condor_template = condor_template_file.read()
     condor_template_file.close()
     condor_template = condor_template.replace('TEMPL_NJOBS', str(params['NJOBS']))
-    templs_keys = [key for key in params.keys() if 'TEMPL_' in key]
+    templs_keys = [key for key in list(params.keys()) if 'TEMPL_' in key]
     for key in templs_keys:
         condor_template = condor_template.replace(key, str(params[key]))
 
@@ -369,9 +369,9 @@ def createJobExecutable(mode, params):
         run_template_name = default_template_name
     shutil.copy(run_template_name, '{}/run.sh'.format(params['TEMPL_TASKCONFDIR']))
     shutil.copy('templates/copy_files.sh', '{}/copy_files.sh'.format(params['TEMPL_TASKDIR']))
-    os.chmod(os.path.join(params['TEMPL_TASKDIR'], 'copy_files.sh'),  0754)
+    os.chmod(os.path.join(params['TEMPL_TASKDIR'], 'copy_files.sh'),  0o754)
     params_file = open(os.path.join(params['TEMPL_TASKCONFDIR'], 'params.sh'), 'w')
-    templs_keys = [key for key in params.keys() if 'TEMPL_' in key]
+    templs_keys = [key for key in list(params.keys()) if 'TEMPL_' in key]
     for key in templs_keys:
         params_file.write('{}={}\n'.format(key.split('_')[1], str(params[key])))
     
@@ -386,7 +386,7 @@ def createCrabConfig(mode, params):
     crab_template_file = open(crab_template_name)
     crab_template = crab_template_file.read()
     crab_template_file.close()
-    templs_keys = [key for key in params.keys() if 'TEMPL_' in key]
+    templs_keys = [key for key in list(params.keys()) if 'TEMPL_' in key]
     for key in templs_keys:
         crab_template = crab_template.replace(key, str(params[key]))
 
