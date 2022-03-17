@@ -414,17 +414,19 @@ def createTaskSetup(task_config, config_file):
 
     # shutil.copy(task_config.cmssw_config, '{}/conf/input_cfg.py'.format(task_config.task_dir))
     
-    pickler(task_config.cmssw_config, 'input_cfg.py')
-    shutil.move("input_cfg.py", '{}/conf/input_cfg.py'.format(task_config.task_dir))
-    shutil.move("input_cfg.pkl", '{}/conf/input_cfg.pkl'.format(task_config.task_dir))
 
     params = getJobParams(mode, task_config)
     if not task_config.crab:
+        pickler(task_config.cmssw_config, 'input_cfg.py')
+        shutil.move("input_cfg.py", '{}/conf/input_cfg.py'.format(task_config.task_dir))
+        shutil.move("input_cfg.pkl", '{}/conf/input_cfg.pkl'.format(task_config.task_dir))
+
         createJobSandbox(params)
         createJobConfig(mode, params)
         createCondorConfig(mode, params)
         createJobExecutable(mode, params)
     else:
+        shutil.copy(task_config.cmssw_config, '{}/conf/input_cfg.py'.format(task_config.task_dir))
         createCrabConfig(mode, params)
     return
 
@@ -434,10 +436,12 @@ def submitTask(sub_name, task_config):
     if task_config.crab:
         submit_cmd = 'crab submit {}/conf/crab.py'.format(task_config.task_dir)
     try:
-        print(subprocess.check_output(submit_cmd, shell=True))
+        output = subprocess.check_output(submit_cmd, shell=True).splitlines()
     except subprocess.CalledProcessError as e:
         print('Command: {} FAILED!'.format(submit_cmd))
-        print(e.output)
+        output = e.output.splitlines()
+    for line in output:
+        print(line.decode('UTF-8'))
 
 
 def getCondorCluster(task_config):
