@@ -7,13 +7,13 @@ Common:
     # - DoubleElectron_FlatPt-1To100_PU0
     # - TTBar_PU200
     # - DYToLL_PU200
-    # - DoubleElectron_FlatPt-1To100_PU200
-    # - DoublePhoton_FlatPt-1To100_PU200
-    - NuGunAllEta_PU200
+    - DoubleElectron_FlatPt-1To100_PU200
+    - DoublePhoton_FlatPt-1To100_PU200
+    # - NuGunAllEta_PU200
 
-  cmssw_config: configs/step1_L1_ProdLike_PF_NF_rateonly.py
-  version: v70B3
-  output_dir_base: /eos/cms/store/cmst3/group/l1tr/cerminar/hgcal/CMSSW1110pre6
+  cmssw_config: configs/step1_L1TCorr_EGNtuples.py
+  version: v80A
+  output_dir_base: /eos/cms/store/cmst3/group/l1tr/cerminar/l1teg/ntuples
   ncpu: 1
   output_file_name: ntuple.root
 
