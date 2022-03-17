@@ -41,9 +41,9 @@ class SandboxTarball(object):
         # Tar up whole directories
         for directory in directories:
             fullPath = os.path.join(self.params['TEMPL_CMSSWBASE'], directory)
-            print("Checking directory %s" % fullPath)
+            print(("Checking directory %s" % fullPath))
             if os.path.exists(fullPath):
-                print("Adding directory %s to tarball" % fullPath)
+                print(("Adding directory %s to tarball" % fullPath))
                 self.checkdirectory(fullPath)
                 self.tarfile.add(fullPath, directory, recursive=True)
 
@@ -52,7 +52,7 @@ class SandboxTarball(object):
         for root, _, _ in os.walk(srcPath):
             if os.path.basename(root) in dataDirs:
                 directory = root.replace(srcPath, 'src')
-                print("Adding data directory %s to tarball" % root)
+                print(("Adding data directory %s to tarball" % root))
                 self.checkdirectory(root)
                 self.tarfile.add(root, directory, recursive=True)
 
@@ -161,7 +161,7 @@ def splitFiles(files, splitting_mode, splitting_granularity):
     # elif splitting_mode == 'EventAwareLumiBased' or splitting_mode == 'Automatic':
     #     pass
     else:
-        print '[submission] Splitting-Mode: {} is not implemented! Exiting...'.format(splitting_mode)
+        print('[submission] Splitting-Mode: {} is not implemented! Exiting...'.format(splitting_mode))
         sys.exit(6)
     return split_files, split_logic
 
@@ -180,7 +180,7 @@ def getFilesForDataset(dataset, site=None):
     # print query
     while (eC != 0 and count < 3):
         if count != 0:
-            print 'Sleeping, then retrying DAS'
+            print('Sleeping, then retrying DAS')
             time.sleep(100)
         p = Popen(query,
                   stdout=PIPE,
@@ -190,10 +190,10 @@ def getFilesForDataset(dataset, site=None):
         eC = tupleP[1]
         count = count+1
         if eC == 0:
-            print "DAS succeeded after", count, "attempts", eC
+            print("DAS succeeded after", count, "attempts", eC)
             return [filename for filename in pipe.split('\n') if '.root' in filename]
         else:
-            print "DAS failed 3 times- I give up"
+            print("DAS failed 3 times- I give up")
             return []
 
 
@@ -204,13 +204,13 @@ def getJobParams(mode, task_conf):
         input_files = []
         if not task_conf.crab:
             if hasattr(task_conf, 'input_directory'):
-                print('Reading inpout files from directory: {}'.format(task_conf.input_directory))
+                print(('Reading inpout files from directory: {}'.format(task_conf.input_directory)))
                 input_files = ['root://eoscms.cern.ch/'+os.path.join(task_conf.input_directory, file_name) for file_name in os.listdir(task_conf.input_directory) if file_name.endswith('.root')]
             elif hasattr(task_conf, 'input_dataset'):
-                print('Reading inpout files from dataset: {}'.format(task_conf.input_dataset))
+                print(('Reading inpout files from dataset: {}'.format(task_conf.input_dataset)))
                 input_files = getFilesForDataset(task_conf.input_dataset, site='T2_CH_CERN')
             else:
-                print('ERROR: no input specified for task: {}'.format(task_conf.task_name))
+                print(('ERROR: no input specified for task: {}'.format(task_conf.task_name)))
                 sys.exit(1)
         # print input_files
 
@@ -226,9 +226,9 @@ def getJobParams(mode, task_conf):
             if(hasattr(task_conf, 'max_njobs')):
                 n_jobs = min(n_jobs_max, task_conf.max_njobs)
 
-            print 'preparing batch submission:'
-            print '  # of files: {}'.format(len(input_files))
-            print '  # of jobs: {}'.format(n_jobs)
+            print('preparing batch submission:')
+            print('  # of files: {}'.format(len(input_files)))
+            print('  # of jobs: {}'.format(n_jobs))
             params['NJOBS'] = n_jobs
             params['TEMPL_JOBFLAVOR'] = task_conf.job_flavor
             params['INFILES'] = split_files
@@ -237,19 +237,19 @@ def getJobParams(mode, task_conf):
             params['TEMPL_NEVENTS'] = -1
 
         else:
-            print 'preparing crab submission'
+            print('preparing crab submission')
             params['TEMPL_NEVENTS'] = max_events
 
         split_pu_files = []
         if(hasattr(task_conf, 'pu_dataset')):
             pu_files = getFilesForDataset(dataset=task_conf.pu_dataset, site=None)
             pu_splitting_granularity = min(100,  int(len(pu_files)/n_jobs))
-            print "# of PU files: {}".format(len(pu_files))
-            print "# PU file per job: {}".format(pu_splitting_granularity)
+            print("# of PU files: {}".format(len(pu_files)))
+            print("# PU file per job: {}".format(pu_splitting_granularity))
             split_pu_files, split_pu_logic = splitFiles(files=pu_files,
                                                         splitting_mode='file_based',
                                                         splitting_granularity=pu_splitting_granularity)
-            print len(split_pu_files)
+            print(len(split_pu_files))
         # the first 2 are compulsory for all modes
         params['PUFILES'] = split_pu_files
         
@@ -273,7 +273,7 @@ def getJobParams(mode, task_conf):
             if variable in os.environ:
                 return os.environ[variable]
             else:
-                print("ERROR: {} not found in shell enviroment!".format(variable))
+                print(("ERROR: {} not found in shell enviroment!".format(variable)))
                 sys.exit(11)
 
         if not task_conf.crab:
@@ -283,7 +283,7 @@ def getJobParams(mode, task_conf):
 
 
     else:
-        print 'Mode: {} is not implemented! Exiting...'.format(mode)
+        print('Mode: {} is not implemented! Exiting...'.format(mode))
         sys.exit(4)
     return params
 
@@ -296,12 +296,12 @@ def formatFileList(input_files):
 def createJobSandbox(params):
     sb_tar_name = os.path.join(params['TEMPL_TASKBASEDIR'], 'sandbox.tgz')
     if not os.path.isfile(sb_tar_name):
-        print('--- Creating sandbox tar: {}'.format(sb_tar_name))
+        print(('--- Creating sandbox tar: {}'.format(sb_tar_name)))
         sb_tar = SandboxTarball(name=sb_tar_name, params=params)
         sb_tar.addFiles()
         sb_tar.close()
     else:
-        print('NOTE: Sandbox tar: {} already exists, reusing it!'.format(sb_tar_name))
+        print(('NOTE: Sandbox tar: {} already exists, reusing it!'.format(sb_tar_name)))
 
 def createJobConfig(mode, params):
     custom_template_filename = 'templates/jobCustomization_{}_cfg.py'.format(mode)
@@ -333,10 +333,10 @@ def createJobConfig(mode, params):
 
         # we now check that all templated arguments have been addressed
         if('TEMPL_') in custom_template:
-            print "*** ERROR: not all the templated arguments of file {} have been addressed!".format(custom_template_filename)
+            print("*** ERROR: not all the templated arguments of file {} have been addressed!".format(custom_template_filename))
             for line in custom_template.split('\n'):
                 if 'TEMPL_' in line:
-                    print line
+                    print(line)
             sys.exit(20)
 
         job_config_file = open(os.path.join(params['TEMPL_TASKCONFDIR'], 'job_config_{}.py'.format(job_idx)), 'w')
@@ -399,7 +399,7 @@ def createTaskSetup(task_config, config_file):
     mode = config_file['Common']['mode']
     pwd = os.environ["PWD"]
     if not os.path.exists(task_config.task_dir):
-        print "   creating task directory {}".format(task_config.task_dir)
+        print("   creating task directory {}".format(task_config.task_dir))
         os.makedirs(task_config.task_dir)
         os.mkdir(task_config.task_dir+'/conf/')
         os.mkdir(task_config.task_dir+'/logs/')
@@ -408,9 +408,9 @@ def createTaskSetup(task_config, config_file):
         try:
             os.makedirs(task_config.output_dir)
         except:
-            print '   ERROR: output dir {} doesn\'t exist: please create it first!'.format(task_config.output_dir)
-            print "Unexpected error:", sys.exc_info()[0]
-            print sys.exit(2)
+            print('   ERROR: output dir {} doesn\'t exist: please create it first!'.format(task_config.output_dir))
+            print("Unexpected error:", sys.exc_info()[0])
+            print(sys.exit(2))
 
     # shutil.copy(task_config.cmssw_config, '{}/conf/input_cfg.py'.format(task_config.task_dir))
     
@@ -434,10 +434,10 @@ def submitTask(sub_name, task_config):
     if task_config.crab:
         submit_cmd = 'crab submit {}/conf/crab.py'.format(task_config.task_dir)
     try:
-        print subprocess.check_output(submit_cmd, shell=True)
+        print(subprocess.check_output(submit_cmd, shell=True))
     except subprocess.CalledProcessError as e:
-        print 'Command: {} FAILED!'.format(submit_cmd)
-        print e.output
+        print('Command: {} FAILED!'.format(submit_cmd))
+        print(e.output)
 
 
 def getCondorCluster(task_config):
@@ -452,18 +452,18 @@ def getCondorCluster(task_config):
 def printStatus(clusterId):
     condor_cmd = 'condor_q {}'.format(clusterId)
     try:
-        print subprocess.check_output(condor_cmd, shell=True)
+        print(subprocess.check_output(condor_cmd, shell=True))
     except subprocess.CalledProcessError as e:
-        print 'Command: {} FAILED!'.format(condor_cmd)
-        print e.output
+        print('Command: {} FAILED!'.format(condor_cmd))
+        print(e.output)
 
 def printWait(task_conf, clusterId):
     condor_cmd = 'condor_wait -wait 30 -status {}/logs/condor.{}.log'.format(task_conf.task_dir, clusterId)
     try:
-        print subprocess.check_output(condor_cmd, shell=True)
+        print(subprocess.check_output(condor_cmd, shell=True))
     except subprocess.CalledProcessError as e:
-        print 'Command: {} FAILED!'.format(condor_cmd)
-        print e.output
+        print('Command: {} FAILED!'.format(condor_cmd))
+        print(e.output)
 
 
 def main():
@@ -499,21 +499,21 @@ def main():
 
     if opt.CREATE:
         for task_conf in task_configs:
-            print '-- Creating task {}'.format(task_conf.task_name)
+            print('-- Creating task {}'.format(task_conf.task_name))
             # 1 create local dir
             createTaskSetup(task_conf, cfgfile)
     elif opt.SUBMIT:
         for task_conf in task_configs:
-            print '-- Submitting task {}'.format(task_conf.task_name)
+            print('-- Submitting task {}'.format(task_conf.task_name))
             # 1 create local dir
             submitTask(sub_name, task_conf)
     elif opt.STATUS:
         for task_conf in task_configs:
-            print '-- Status of task {}'.format(task_conf.task_name)
+            print('-- Status of task {}'.format(task_conf.task_name))
             clusterId = getCondorCluster(task_conf)
             printStatus(clusterId)
             printWait(task_conf, clusterId)
-            print '   out dir: {}'.format(task_conf.output_dir)
+            print('   out dir: {}'.format(task_conf.output_dir))
 
 
 if __name__ == "__main__":
