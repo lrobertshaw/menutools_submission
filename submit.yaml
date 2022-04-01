@@ -9,10 +9,10 @@ Common:
     # - DYToLL_PU200
     - DoubleElectron_FlatPt-1To100_PU200
     - DoublePhoton_FlatPt-1To100_PU200
-    # - NuGunAllEta_PU200
+    - NuGunAllEta_PU200
 
   cmssw_config: configs/step1_L1TCorr_EGNtuples.py
-  version: v80A
+  version: v80F
   output_dir_base: /eos/cms/store/cmst3/group/l1tr/cerminar/l1teg/ntuples
   ncpu: 1
   output_file_name: ntuple.root
@@ -26,7 +26,7 @@ DoubleElectron_FlatPt-1To100_PU0:
   # job_flavor =
   max_events: -1
 
-
+  
 DoubleElectron_FlatPt-1To100_PU200:
   input_dataset: /DoubleElectron_FlatPt-1To100/Phase2HLTTDRSummer20ReRECOMiniAOD-PU200_111X_mcRun4_realistic_T15_v1-v2/GEN-SIM-DIGI-RAW-MINIAOD
   # input_directory =
@@ -35,7 +35,6 @@ DoubleElectron_FlatPt-1To100_PU200:
   splitting_granularity: 3000
   # job_flavor =
   max_events: -1
-
 
 
 DoublePhoton_FlatPt-1To100_PU200:
@@ -107,14 +106,23 @@ SinglePhoton_FlatPt-2to200_PU200:
   max_events: 200000
 
 
+# NuGunAllEta_PU200:
+#   # input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2HLTTDRSummer20ReRECOMiniAOD-PU200_111X_mcRun4_realistic_T15_v1-v1/FEVT
+#   input_directory: /eos/cms/store/cmst3/group/l1tr/gpetrucc/11_1_0/NewInputs110X/110121.done/SingleNeutrino_PU200/
+#   crab: False
+#   splitting_mode: file_based
+#   splitting_granularity: 100
+#   job_flavor: longlunch
+#   max_events: 2
+
 NuGunAllEta_PU200:
-  # input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2HLTTDRSummer20ReRECOMiniAOD-PU200_111X_mcRun4_realistic_T15_v1-v1/FEVT
-  input_directory: /eos/cms/store/cmst3/group/l1tr/gpetrucc/11_1_0/NewInputs110X/110121.done/SingleNeutrino_PU200/
-  crab: False
-  splitting_mode: file_based
-  splitting_granularity: 100
+  input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2HLTTDRSummer20ReRECOMiniAOD-PU200_111X_mcRun4_realistic_T15_v1-v1/FEVT
+  # input_directory: /eos/cms/store/cmst3/group/l1tr/gpetrucc/11_1_0/NewInputs110X/110121.done/SingleNeutrino_PU200/
+  crab: True
+  splitting_mode: EventAwareLumiBased
+  splitting_granularity: 3000
   job_flavor: longlunch
-  max_events: 2
+  max_events: 200000
 
 
 DYToLL_PU200:
