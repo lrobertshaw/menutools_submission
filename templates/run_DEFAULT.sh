@@ -19,10 +19,19 @@ echo 'OUTPUT-FILE' ${OUTFILE}
 echo 'PROCID='${PROCID} >> job_info.sh
 echo 'CLUSTERID='${CLUSTERID} >> job_info.sh
 
-cd ${ABSTASKCONFDIR}
+
+export SCRAM_ARCH=${SCRAMARCH}
+scram proj CMSSW ${CMSSWVERSION}
+cd ${CMSSWVERSION}
+cp ${ABSTASKBASEDIR}/sandbox.tgz .
+tar xvf sandbox.tgz
 eval `scram runtime -sh`
-python process_pickler.py job_config_${PROCID}.py ${BATCH_DIR}/job_config.py
+#cd ${ABSTASKCONFDIR}
+cp ${ABSTASKCONFDIR}/input_cfg.pkl ${BATCH_DIR}/
+cp ${ABSTASKCONFDIR}/input_cfg.py ${BATCH_DIR}/
+cp ${ABSTASKCONFDIR}/job_config_${PROCID}.py ${BATCH_DIR}/
+# python process_pickler.py job_config_${PROCID}.py ${BATCH_DIR}/job_config.py
 cd ${BATCH_DIR}
 ls -lrt
-echo 'now about to run it: '
-cmsRun job_config.py
+echo 'now we run it...fasten your seatbelt: '
+cmsRun job_config_${PROCID}.py
