@@ -1,24 +1,32 @@
-# Submission tools for batch job management (CERN HT-Condor)
+# Submission tools for batch job management (CERN HT-Condor & CMS CRAB)
 
 ## How-to submit jobs
 
 Inline help:
 
-`python submit.py --help`
+`python3 submit.py --help`
 
 Create the Job configuration using the command:
 
-`python submit.py -f submit.cfg --create`
+`python3 submit.py -f submit.yaml --create`
 
 Submit the jobs to the queues via the command:
 
-`python submit.py -f submit.cfg --submit`
+`python submit.py -f submit.yaml --submit`
 
 ## Configuration file
 
-The conf file uses the `ini` format. You can find several examples in this directory. Most of the parameters should be self explenatory. Each task corresponds to a sample and will be mapped to a dedicated condor cluster.
+
+
+The conf file uses the `YAML` format. You can find several examples in this directory. Most of the parameters should be self explenatory. 
+Each task corresponds to a sample.
+
+The tool supports:
+* **HT-Condor local submission**: each task will be mapped to a dedicated condor cluster.
 Input files can be specified via the dataset name using `input_dataset` or via the directory where the files sit using `input_directory`. The implemented input splitting modes are: `file_based` and `lumi_based` (in the sense of LS).
 For the `job_flavor` and other condor parameters please refer to the [CERN Condor documentation](http://batchdocs.web.cern.ch/batchdocs/local/index.html)
+
+* **CRAB remote submission**: this is controlled setting the `crab: True` parameter. In this case the input needs to be specified using `input_dataset` and for the configuration of `splitting_mode` and `splitting_granularity` you need to refer to the [CMS CRAB Sw Guide](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideCrab). The rest of the parameters can be customized via the template file `crab_MODE.py` (see the documentation about the template structure in the following).
 
 
 ## How to modify the template structure
