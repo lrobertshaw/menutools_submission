@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import platform
 import tarfile
+import git
 from process_pickler import pickler
 
 import yaml
@@ -470,6 +471,30 @@ def printWait(task_conf, clusterId):
         print(e.output)
 
 
+def printDoc(task_configs):
+    cmssw_src = os.path.join(os.environ['CMSSW_BASE'], 'src')
+
+    cmssw_repo = git.Repo(cmssw_src)
+    ntp_src = os.path.join(cmssw_src, 'Phase2EGTriggerAnalysis')
+    
+
+    print('\n\n\n')
+    print(f'## {task_configs[0].version}')
+
+    print(f'   * directory: `{os.environ["PWD"]}`')
+    print(f'   * CMSSW version: `{os.environ["CMSSW_VERSION"]}`')
+    print(f'   * CMSSW git branch: `{cmssw_repo.active_branch.name}`')
+
+    if(os.path.exists(ntp_src)):
+        ntp_repo = git.Repo(ntp_src)
+        print(f'   * `Phase2EGTriggerAnalysis` git branch: `{ntp_repo.active_branch.name}`')
+
+    print(f'   * config file: `{task_configs[0].cmssw_config}`')
+    print(f'   * tasks:')
+    for task in task_configs:
+        print(f'      * `{task.task_name}`')
+
+
 def main():
     usage = ('usage: %prog [options]\n'
              + '%prog -h for help')
@@ -478,6 +503,7 @@ def main():
     parser.add_option("--create", action="store_true", dest="CREATE", default=False, help="create the job configuration")
     parser.add_option("--submit", action="store_true", dest="SUBMIT", default=False, help="submit the jobs to condor")
     parser.add_option("--status", action="store_true", dest="STATUS", default=False, help="check the status of the condor tasks")
+    parser.add_option("--doc", action="store_true", dest="DOC", default=False, help="print setup for documentation")
 
     global opt, args
     (opt, args) = parser.parse_args()
@@ -518,7 +544,8 @@ def main():
             printStatus(clusterId)
             printWait(task_conf, clusterId)
             print('   out dir: {}'.format(task_conf.output_dir))
-
+    elif opt.DOC:
+        printDoc(task_configs)
 
 if __name__ == "__main__":
     main()
