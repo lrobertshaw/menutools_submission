@@ -185,6 +185,7 @@ def getFilesForDataset(dataset, site=None):
             time.sleep(100)
         p = Popen(query,
                   stdout=PIPE,
+                  universal_newlines=True,
                   shell=True)
         pipe = p.stdout.read()
         tupleP = os.waitpid(p.pid, 0)
