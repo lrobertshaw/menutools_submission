@@ -13,6 +13,8 @@ transfer_input_files  = TEMPL_TASKDIR/copy_files.sh
 
 +AccountingGroup = "group_u_CMST3.all"
 
+requirements = (OpSysAndVer =?= "CentOS8")
+
 transfer_output_files   = ""
 
 queue TEMPL_NJOBS
