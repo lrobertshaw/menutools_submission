@@ -208,9 +208,11 @@ def getJobParams(mode, task_conf):
             if hasattr(task_conf, 'input_directory'):
                 print(('Reading inpout files from directory: {}'.format(task_conf.input_directory)))
                 input_files = ['root://eoscms.cern.ch/'+os.path.join(task_conf.input_directory, file_name) for file_name in os.listdir(task_conf.input_directory) if file_name.endswith('.root')]
+                #input_files = ['root://cmsxrootd.fnal.gov/'+os.path.join(task_conf.input_directory, file_name) for file_name in os.listdir(task_conf.input_directory) if file_name.endswith('.root')]
             elif hasattr(task_conf, 'input_dataset'):
                 print(('Reading inpout files from dataset: {}'.format(task_conf.input_dataset)))
                 input_files = getFilesForDataset(task_conf.input_dataset, site='T2_CH_CERN')
+                input_files = ['root://cmsxrootd.fnal.gov/' + f for f in input_files]
             else:
                 print(('ERROR: no input specified for task: {}'.format(task_conf.task_name)))
                 sys.exit(1)
