@@ -1,0 +1,100 @@
+Common:
+  mode: NTP
+  name: ntuples
+
+  tasks:
+    #- DY_M10to50_1252_200PU_condor
+    #- DY_M50_1252_200PU
+    #- TT_1252_200PU
+    #- VBFHToTauTau_1252_200PU
+    #- GluGluHToGG_1252_200PU
+    #- MinBias_1252_200PU
+    #- MinBias_1252_200PU_crb
+    - HHToTauTau_1252_200PU_crab
+
+  cmssw_config: ../test/step1_ntuples_125.py
+  version: v27_PU200_fixHwQual
+  output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/alobanov/phase2/menu/ntuples/CMSSW_12_5_2p1/
+  ncpu: 1
+  output_file_name: L1Ntuple.root
+
+DY_M10to50_1252_200PU_condor:
+  input_dataset: /DYToLL_M-10To50_TuneCP5_14TeV-pythia8/Phase2Fall22DRMiniAOD-PU200_Pilot_125X_mcRun4_realistic_v2-v2/GEN-SIM-DIGI-RAW-MINIAOD
+  # input_directory =
+  crab: False
+  splitting_mode: file_based
+  splitting_granularity: 50
+  job_flavor: espresso
+  max_events: -1
+
+DY_M50_1252_200PU:
+  input_dataset: /DYToLL_M-50_TuneCP5_14TeV-pythia8/Phase2Fall22DRMiniAOD-PU200_125X_mcRun4_realistic_v2-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  # input_directory =
+  crab: False
+  splitting_mode: file_based
+  splitting_granularity: 50
+  job_flavor: espresso
+  max_events: -1
+
+TT_1252_200PU:
+  input_dataset: /TT_TuneCP5_14TeV-powheg-pythia8/Phase2Fall22DRMiniAOD-PU200_125X_mcRun4_realistic_v2_ext1-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  # input_directory =
+  crab: False
+  splitting_mode: file_based
+  splitting_granularity: 50
+  job_flavor: espresso
+  max_events: -1
+
+VBFHToTauTau_1252_200PU:
+  input_dataset: /VBFHToTauTau_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Fall22DRMiniAOD-PU200_125X_mcRun4_realistic_v2-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  # input_directory =
+  crab: False
+  splitting_mode: file_based
+  splitting_granularity: 50
+  job_flavor: espresso
+  max_events: -1
+
+HHToTauTau_1252_200PU:
+  input_dataset: /GluGluToHHTo2B2Tau_node_SM_TuneCP5_14TeV-madgraph-pythia8/Phase2Fall22DRMiniAOD-PU200_125X_mcRun4_realistic_v2-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  # input_directory =
+  crab: False
+  splitting_mode: file_based
+  splitting_granularity: 50
+  job_flavor: espresso
+  max_events: -1
+
+HHToTauTau_1252_200PU_crab:
+  input_dataset: /GluGluToHHTo2B2Tau_node_SM_TuneCP5_14TeV-madgraph-pythia8/Phase2Fall22DRMiniAOD-PU200_125X_mcRun4_realistic_v2-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  # input_directory =
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  #job_flavor: espresso
+  max_events: -1
+
+GluGluHToGG_1252_200PU:
+  input_dataset: /GluGluHToGG_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Fall22DRMiniAOD-PU200_125X_mcRun4_realistic_v2-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  # input_directory =
+  crab: False
+  splitting_mode: file_based
+  splitting_granularity: 50
+  job_flavor: espresso
+  max_events: -1
+
+MinBias_1252_200PU:
+  input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2Fall22DRMiniAOD-PU200_125X_mcRun4_realistic_v2-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  # input_directory =
+  crab: False
+  splitting_mode: file_based
+  splitting_granularity: 70
+  job_flavor: espresso
+  max_events: -1
+
+MinBias_1252_200PU_crb:
+  input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2Fall22DRMiniAOD-PU200_125X_mcRun4_realistic_v2-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  # input_directory =
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  #job_flavor: espresso
+  max_events: -1
