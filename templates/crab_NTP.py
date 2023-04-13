@@ -24,5 +24,7 @@ config.Data.publication = False
 config.Data.ignoreLocality = False
 config.Data.outputDatasetTag = 'TEMPL_DATASETTAG'
 
+config.Data.partialDataset = True
+
 config.Site.storageSite = 'T2_CH_CERN'
 config.JobType.allowUndistributedCMSSW = True
