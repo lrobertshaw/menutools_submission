@@ -1,0 +1,59 @@
+Common:
+  mode: NTP
+  name: ntuples
+
+  tasks:
+    - DY_M50_131_200PU
+    - TT_131_200PU
+    - VBFHToTauTau_131_200PU
+    - GluGluHToGG_131_200PU
+    # - HHTo2B2Tau_131_200PU
+    # - MinBias_131
+
+  cmssw_config: ../test/v33_rerunL1wTT_140pre3v1_cfg.py
+  version: IB1400pre3V1
+  output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/alobanov/phase2/menu/ntuples/14X/v33/
+  ncpu: 1
+  output_file_name: L1Nano.root
+
+DY_M50_131_200PU:
+  input_dataset: /DYToLL_M-50_TuneCP5_14TeV-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
+
+TT_131_200PU:
+  input_dataset: /TT_TuneCP5_14TeV-powheg-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
+
+GluGluHToGG_131_200PU:
+  input_dataset: /GluGluHToGG_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
+
+VBFHToTauTau_131_200PU:
+  input_dataset: /VBFHToTauTau_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
+
+HHTo2B2Tau_131_200PU:
+  input_dataset: /GluGluToHHTo2B2Tau_node_SM_TuneCP5_14TeV-madgraph-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
+
+MinBias_131:
+  input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
