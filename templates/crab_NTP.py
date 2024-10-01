@@ -13,7 +13,8 @@ config.General.transferLogs = False
 
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'TEMPL_TASKCONFDIR/input_cfg.py'
-config.JobType.maxMemoryMB = 2500
+config.JobType.maxMemoryMB = 8000
+config.JobType.numCores = 4
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'TEMPL_SPLITTINGMODE'
@@ -28,3 +29,5 @@ config.Data.partialDataset = True
 
 config.Site.storageSite = 'T2_CH_CERN'
 config.JobType.allowUndistributedCMSSW = True
+
+config.Data.allowNonValidInputDataset = True
