@@ -14,7 +14,7 @@ Common:
 
   cmssw_config: ../test/step1_ntuples_125.py
   version: v27_PU200_fixHwQual
-  output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/alobanov/phase2/menu/ntuples/CMSSW_12_5_2p1/
+  output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/roward/phase2/menu/ntuples/CMSSW_12_5_2p1/
   ncpu: 1
   output_file_name: L1Ntuple.root
 

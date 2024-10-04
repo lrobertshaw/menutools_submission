@@ -11,7 +11,7 @@ Common:
 
   cmssw_config: ../test/v43_rerunL1wTT_cfg.py
   version: V43_reL1wTT
-  output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/alobanov/phase2/menu/ntuples/Spring24/141pre7/v43/
+  output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/roward/phase2/menu/ntuples/Spring24/141pre7/v43/
   ncpu: 1
   output_file_name: L1Nano.root
 

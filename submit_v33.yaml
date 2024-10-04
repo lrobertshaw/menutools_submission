@@ -12,7 +12,7 @@ Common:
 
   cmssw_config: ../test/v33_rerunL1wTT_140pre3v1_cfg.py
   version: IB1400pre3V1
-  output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/alobanov/phase2/menu/ntuples/14X/v33/
+  output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/roward/phase2/menu/ntuples/14X/v33/
   ncpu: 1
   output_file_name: L1Nano.root
 
