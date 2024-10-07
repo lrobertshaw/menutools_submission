@@ -8,7 +8,8 @@ Common:
     # - VBFHtoTaus_Spring24_200PU
     # - Hto2gg_Spring24_200PU
     # - DY_M10_Spring24_200PU
-    - MinBias_Spring24_200PU
+    # - MinBias_Spring24_200PUALCA
+    - MinBias_Spring24_140PU
   cmssw_config: ../test/v44_rerunL1wTT_cfg.py
   version: V44_reL1wTT
   output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/roward/phase2/menu/ntuples/Spring24/142pre1/v44/
@@ -50,8 +51,15 @@ TT_Spring24_200PU:
   splitting_granularity: 200
   max_events: -1
 
-MinBias_Spring24_200PU:
+MinBias_Spring24_200PUALCA:
   input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200ALCA_140X_mcRun4_realistic_v4-v2/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
+
+MinBias_Spring24_140PU:
+  input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU140_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
   crab: True
   splitting_mode: Automatic
   splitting_granularity: 200
