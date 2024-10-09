@@ -3,67 +3,107 @@ Common:
   name: ntuples
 
   tasks:
+    - TT_Spring24_140PU
+    - DY_M50_Spring24_140PU
+    - VBFHtoTaus_Spring24_140PU
+    - Hto2gg_Spring24_140PU
+    - DY_M10_Spring24_140PU
+    # - MinBias_Spring24_140PU
     # - TT_Spring24_200PU
     # - DY_M50_Spring24_200PU
     # - VBFHtoTaus_Spring24_200PU
     # - Hto2gg_Spring24_200PU
     # - DY_M10_Spring24_200PU
     # - MinBias_Spring24_200PUALCA
-    - MinBias_Spring24_140PU
   cmssw_config: ../test/v44_rerunL1wTT_cfg.py
   version: V44_reL1wTT
   output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/roward/phase2/menu/ntuples/Spring24/142pre1/v44/
   ncpu: 4
   output_file_name: L1Nano.root
 
-DY_M50_Spring24_200PU:
-  input_dataset: /DYToLL_M-50_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+DY_M50_Spring24_140PU:
+  input_dataset: /DYToLL_M-50_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU140_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
   crab: True
   splitting_mode: Automatic
   splitting_granularity: 200
   max_events: -1
 
-DY_M10_Spring24_200PU:
-  input_dataset: /DYToLL_M-10To50_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+DY_M10_Spring24_140PU:
+  input_dataset: /DYToLL_M-10To50_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU140_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
   crab: True
   splitting_mode: Automatic
   splitting_granularity: 200
   max_events: -1
 
-VBFHtoTaus_Spring24_200PU:
-  input_dataset: /VBF_HToTauTau_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+VBFHtoTaus_Spring24_140PU:
+  input_dataset: /VBF_HToTauTau_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU140_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
   crab: True
   splitting_mode: Automatic
   splitting_granularity: 200
   max_events: -1
 
-Hto2gg_Spring24_200PU:
-  input_dataset: /GluGluHToGG_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/GEN-SIM-DIGI-RAW-MINIAOD
+Hto2gg_Spring24_140PU:
+  input_dataset: /GluGluHToGG_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU140_Trk1GeV_140X_mcRun4_realistic_v4-v2/GEN-SIM-DIGI-RAW-MINIAOD
   crab: True
   splitting_mode: Automatic
   splitting_granularity: 200
   max_events: -1
 
-TT_Spring24_200PU:
-  input_dataset: /TT_TuneCP5_14TeV-powheg-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/GEN-SIM-DIGI-RAW-MINIAOD
+TT_Spring24_140PU:
+  input_dataset: /TT_TuneCP5_14TeV-powheg-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU140_Trk1GeV_140X_mcRun4_realistic_v4-v2/GEN-SIM-DIGI-RAW-MINIAOD
   crab: True
   splitting_mode: Automatic
   splitting_granularity: 200
   max_events: -1
 
-MinBias_Spring24_200PUALCA:
-  input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200ALCA_140X_mcRun4_realistic_v4-v2/GEN-SIM-DIGI-RAW-MINIAOD
-  crab: True
-  splitting_mode: Automatic
-  splitting_granularity: 200
-  max_events: -1
+# MinBias_Spring24_140PU:
+#   input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU140_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+#   crab: True
+#   splitting_mode: Automatic
+#   splitting_granularity: 200
+#   max_events: -1
 
-MinBias_Spring24_140PU:
-  input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU140_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
-  crab: True
-  splitting_mode: Automatic
-  splitting_granularity: 200
-  max_events: -1
+# DY_M50_Spring24_200PU:
+#   input_dataset: /DYToLL_M-50_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+#   crab: True
+#   splitting_mode: Automatic
+#   splitting_granularity: 200
+#   max_events: -1
+
+# DY_M10_Spring24_200PU:
+#   input_dataset: /DYToLL_M-10To50_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+#   crab: True
+#   splitting_mode: Automatic
+#   splitting_granularity: 200
+#   max_events: -1
+
+# VBFHtoTaus_Spring24_200PU:
+#   input_dataset: /VBF_HToTauTau_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+#   crab: True
+#   splitting_mode: Automatic
+#   splitting_granularity: 200
+#   max_events: -1
+
+# Hto2gg_Spring24_200PU:
+#   input_dataset: /GluGluHToGG_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/GEN-SIM-DIGI-RAW-MINIAOD
+#   crab: True
+#   splitting_mode: Automatic
+#   splitting_granularity: 200
+#   max_events: -1
+
+# TT_Spring24_200PU:
+#   input_dataset: /TT_TuneCP5_14TeV-powheg-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/GEN-SIM-DIGI-RAW-MINIAOD
+#   crab: True
+#   splitting_mode: Automatic
+#   splitting_granularity: 200
+#   max_events: -1
+
+# MinBias_Spring24_200PUALCA:
+#   input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200ALCA_140X_mcRun4_realistic_v4-v2/GEN-SIM-DIGI-RAW-MINIAOD
+#   crab: True
+#   splitting_mode: Automatic
+#   splitting_granularity: 200
+#   max_events: -1
 
 # TT_131_200PU:
 #   input_dataset: /TT_TuneCP5_14TeV-powheg-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
