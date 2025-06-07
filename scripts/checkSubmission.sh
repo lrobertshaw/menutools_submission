@@ -20,6 +20,7 @@ fi
 echo "Running crab status for subdirectories in $BASE_DIR..."
 
 # Loop through all subdirectories in the base directory
+# for dir in "$BASE_DIR"/*140PU*/; do
 for dir in "$BASE_DIR"/*/; do
     # Extract just the directory name without path
     directory=$(basename "$dir")
