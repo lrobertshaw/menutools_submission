@@ -1,6 +1,7 @@
 # joblist="151X_D110 151X_D116 151X_D121 151pre3_only48136 151pre3_SC8Nano"
-joblist="151pre3_L1EGupdate1"
-revision=7am
+# joblist="151pre3_L1EGupdate1"
+joblist="151pre3_E2ENNVtx 151pre3_E2ENNVtxOff 151X_E2ENNVtx 151X_L1EGupdate2"
+revision=1am
 RESUBMIT=$1
 
 for job in $joblist; do
