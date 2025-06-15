@@ -14,7 +14,15 @@ Common:
     # - VBFHtoTaus_Spring24_140PU
     # - Hto2gg_Spring24_140PU
     # - DY_M10_Spring24_140PU
-    - MinBias_Spring24_140PU
+    # - MinBias_Spring24_140PU
+    - HTo2LongLivedTo2mu2jets_MH-125_MFF-20_CTau-1300mm_200PU
+    - HTo2LongLivedTo2mu2jets_MH-125_MFF-50_CTau-5000mm_200PU
+    - HTo2LongLivedTo4mu_MH-125_MFF-12_CTau-10000mm_200PU
+    - HTo2LongLivedTo4mu_MH-125_MFF-12_CTau-900mm_200PU
+    - HTo2LongLivedTo4mu_MH-125_MFF-25_CTau-10000mm_200PU
+    - HTo2LongLivedTo4mu_MH-125_MFF-25_CTau-1500mm_200PU
+    - HTo2LongLivedTo4mu_MH-125_MFF-50_CTau-10000mm_200PU
+    - HTo2LongLivedTo4mu_MH-125_MFF-50_CTau-3000mm_200PU
   cmssw_config: ../test/v45_rerunL1wTT_withGen_cfg.py
   version: V45_reL1wTT_151pre3
   output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/roward/phase2/menu/ntuples/Spring24/151pre3/v45/
@@ -107,41 +115,59 @@ MinBias_Spring24_140PU:
   splitting_granularity: 200
   max_events: -1
 
+HTo2LongLivedTo2mu2jets_MH-125_MFF-20_CTau-1300mm_200PU:
+  input_dataset: /HTo2LongLivedTo2mu2jets_MH-125_MFF-20_CTau-1300mm_TuneCP5_14TeV_pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
 
+HTo2LongLivedTo2mu2jets_MH-125_MFF-50_CTau-5000mm_200PU:
+  input_dataset: /HTo2LongLivedTo2mu2jets_MH-125_MFF-50_CTau-5000mm_TuneCP5_14TeV_pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
 
+HTo2LongLivedTo4mu_MH-125_MFF-12_CTau-10000mm_200PU:
+  input_dataset: /HTo2LongLivedTo4mu_MH-125_MFF-12_CTau-10000mm_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
 
-# TT_131_200PU:
-#   input_dataset: /TT_TuneCP5_14TeV-powheg-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
-#   crab: True
-#   splitting_mode: Automatic
-#   splitting_granularity: 200
-#   max_events: -1
+HTo2LongLivedTo4mu_MH-125_MFF-12_CTau-900mm_200PU:
+  input_dataset: /HTo2LongLivedTo4mu_MH-125_MFF-12_CTau-900mm_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
 
-# GluGluHToGG_131_200PU:
-#   input_dataset: /GluGluHToGG_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
-#   crab: True
-#   splitting_mode: Automatic
-#   splitting_granularity: 200
-#   max_events: -1
+HTo2LongLivedTo4mu_MH-125_MFF-25_CTau-10000mm_200PU:
+  input_dataset: /HTo2LongLivedTo4mu_MH-125_MFF-25_CTau-10000mm_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
 
-# VBFHToTauTau_131_200PU:
-#   input_dataset: /VBFHToTauTau_M-125_TuneCP5_14TeV-powheg-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
-#   crab: True
-#   splitting_mode: Automatic
-#   splitting_granularity: 200
-#   max_events: -1
+HTo2LongLivedTo4mu_MH-125_MFF-25_CTau-1500mm_200PU:
+  input_dataset: /HTo2LongLivedTo4mu_MH-125_MFF-25_CTau-1500mm_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
 
-# HHTo2B2Tau_131_200PU:
-#   input_dataset: /GluGluToHHTo2B2Tau_node_SM_TuneCP5_14TeV-madgraph-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
-#   crab: True
-#   splitting_mode: Automatic
-#   splitting_granularity: 200
-#   max_events: -1
+HTo2LongLivedTo4mu_MH-125_MFF-50_CTau-10000mm_200PU:
+  input_dataset: /HTo2LongLivedTo4mu_MH-125_MFF-50_CTau-10000mm_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
 
-# MinBias_131:
-#   input_dataset: /MinBias_TuneCP5_14TeV-pythia8/Phase2Spring23DIGIRECOMiniAOD-PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/GEN-SIM-DIGI-RAW-MINIAOD
-#   crab: True
-#   splitting_mode: Automatic
-#   splitting_granularity: 200
-#   max_events: -1
+HTo2LongLivedTo4mu_MH-125_MFF-50_CTau-3000mm_200PU:
+  input_dataset: /HTo2LongLivedTo4mu_MH-125_MFF-50_CTau-3000mm_TuneCP5_14TeV-pythia8/Phase2Spring24DIGIRECOMiniAOD-PU200_Trk1GeV_140X_mcRun4_realistic_v4-v1/GEN-SIM-DIGI-RAW-MINIAOD
+  crab: True
+  splitting_mode: Automatic
+  splitting_granularity: 200
+  max_events: -1
 
