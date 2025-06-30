@@ -23,7 +23,7 @@ Common:
     - HTo2LongLivedTo4mu_MH-125_MFF-25_CTau-1500mm_Spring24_200PU
     - HTo2LongLivedTo4mu_MH-125_MFF-50_CTau-10000mm_Spring24_200PU
     - HTo2LongLivedTo4mu_MH-125_MFF-50_CTau-3000mm_Spring24_200PU
-  cmssw_config: ../test/v45_rerunL1wTT_D121_DispVtx_cfg.py
+  cmssw_config: cmsrun/v45_rerunL1wTT_D121_DispVtx_cfg.py
   version: V45_reL1wTT_151X_AllAR25_FindOffAssocOn
   output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/roward/phase2/menu/ntuples/Spring24/151X_AllAR25_FindOffAssocOn/v45/
   ncpu: 4

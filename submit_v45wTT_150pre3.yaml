@@ -15,7 +15,7 @@ Common:
     # - Hto2gg_Spring24_140PU
     # - DY_M10_Spring24_140PU
     # - MinBias_Spring24_140PU
-  cmssw_config: ../test/v45_rerunL1wTT_standalone_cfg.py
+  cmssw_config: cmsrun/v45_rerunL1wTT_standalone_cfg.py
   version: V45_reL1wTT_150pre3
   output_dir_base: /eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/roward/phase2/menu/ntuples/Spring24/150pre3/v45/
   ncpu: 4
