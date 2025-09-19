@@ -1,9 +1,17 @@
+import os
+if os.path.exists("output_Phase2_L1T.root"): os.remove("output_Phase2_L1T.root")
+
 # Auto generated configuration file
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
 # with command line options: l1nanoPhase2 -s L1TrackTrigger,L1,L1P2GT,NANO:@Phase2L1DPGwithGen --conditions auto:phase2_realistic_T33 --geometry ExtendedRun4D121 --era Phase2C17I13M9 --eventcontent NANOAOD --datatier GEN-SIM-DIGI-RAW-MINIAOD --customise SLHCUpgradeSimulations/Configuration/aging.customise_aging_1000,Configuration/DataProcessing/Utils.addMonitoring,L1Trigger/Configuration/customisePhase2TTOn110.customisePhase2TTOn110 --filein /store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_AllTP_140X_mcRun4_realistic_v4-v1/2560000/11d1f6f0-5f03-421e-90c7-b5815197fc85.root --fileout file:output_Phase2_L1T.root --python_filename v45_rerunL1wTT_withGen_D121_cfg.py --inputCommands=keep *, drop l1tPFJets_*_*_*, drop l1tTrackerMuons_l1tTkMuonsGmt*_*_HLT --mc -n 40 --nThreads 4
 import FWCore.ParameterSet.Config as cms
+import sys
+
+inputFile = str(sys.argv[-2])
+nEvents = int(sys.argv[-1])
+print(f"\nRunning over file: {inputFile}\nNumber of events: {nEvents}\n")
 
 from Configuration.Eras.Era_Phase2C17I13M9_cff import Phase2C17I13M9
 
@@ -26,21 +34,21 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(40),
+    input = cms.untracked.int32(nEvents),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
 # Input source
 process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
-    fileNames = cms.untracked.vstring('/store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_AllTP_140X_mcRun4_realistic_v4-v1/2560000/11d1f6f0-5f03-421e-90c7-b5815197fc85.root'),
+    fileNames = cms.untracked.vstring(f"root://xrootd-cms.infn.it/{inputFile}"),    #root://cms-xrd-global.cern.ch//store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_AllTP_140X_mcRun4_realistic_v4-v1/2560000/11d1f6f0-5f03-421e-90c7-b5815197fc85.root
     inputCommands = cms.untracked.vstring(
-        'keep *',
-        'drop l1tPFJets_*_*_*',
-        'drop l1tTrackerMuons_l1tTkMuonsGmt*_*_HLT'
-    ),
+        'keep *'
+        # 'drop l1tPFJets_*_*_*',
+        # 'drop l1tTrackerMuons_l1tTkMuonsGmt*_*_HLT'
+        ),
     secondaryFileNames = cms.untracked.vstring()
-)
+    )
 
 process.options = cms.untracked.PSet(
     IgnoreCompletely = cms.untracked.vstring(),
