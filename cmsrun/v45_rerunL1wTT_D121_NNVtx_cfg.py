@@ -41,11 +41,9 @@ process.maxEvents = cms.untracked.PSet(
 # Input source
 process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
-    fileNames = cms.untracked.vstring(f"root://xrootd-cms.infn.it/{inputFile}"),    #root://cms-xrd-global.cern.ch//store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_AllTP_140X_mcRun4_realistic_v4-v1/2560000/11d1f6f0-5f03-421e-90c7-b5815197fc85.root
+    fileNames = cms.untracked.vstring(f"root://cms-xrd-global.cern.ch/{inputFile}"),    #root://xrootd-cms.infn.it/ root://cms-xrd-global.cern.ch/
     inputCommands = cms.untracked.vstring(
         'keep *'
-        # 'drop l1tPFJets_*_*_*',
-        # 'drop l1tTrackerMuons_l1tTkMuonsGmt*_*_HLT'
         ),
     secondaryFileNames = cms.untracked.vstring()
     )
@@ -200,10 +198,25 @@ process = addPh2GTObjects(process)
 #call to customisation function addGenObjects imported from DPGAnalysis.Phase2L1TNanoAOD.l1tPh2Nano_cff
 process = addGenObjects(process)
 
+from PhysicsTools.NanoAOD.common_cff import Var
 # End of customisation functions
-
-
-# Customisation from command line
+from L1Trigger.Phase2L1ParticleFlow.l1tDeregionizerProducer_cfi import l1tDeregionizerProducer as l1tLayer2Deregionizer
+process.pfCandidatesTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
+    src = cms.InputTag("l1tLayer2Deregionizer", "Puppi"),
+    cut = cms.string(""),
+    name = cms.string("PUPPIcands"),
+    doc = cms.string("L1 PUPPI candidates"),
+    singleton = cms.bool(False),
+    extension = cms.bool(False),
+    variables = cms.PSet(
+        pt = Var("pt", float, doc="pT", precision=10),
+        mass = Var("mass", float, doc="Mass", precision=10),
+        eta = Var("eta", float, precision=12),
+        phi = Var("phi", float, precision=12),
+        pdgId = Var("pdgId", int, doc="PF candidate type")
+    )
+)
+process.l1tPh2NanoTask.add(process.pfCandidatesTable)
 
 # Add early deletion of temporary data products to reduce peak memory need
 from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
